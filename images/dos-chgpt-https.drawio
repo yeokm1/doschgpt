@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net" modified="2023-03-25T05:26:24.414Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="qnTMzdSyzczCKUqLPW0Y" version="21.1.1" type="device">
+  <diagram name="Page-1" id="h2VA4krKlCOmyeqGn1Cr">
+    <mxGraphModel dx="1018" dy="509" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="iPBLqGsfzcVAGnoJtpEh-3" value="Vintage MS-DOS PC" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="340" y="160" width="200" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="iPBLqGsfzcVAGnoJtpEh-4" value="DOS ChatGPT client" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iPBLqGsfzcVAGnoJtpEh-5" value="Modern PC&lt;br&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="590" y="160" width="190" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="iPBLqGsfzcVAGnoJtpEh-6" value="HTTP-to-HTTPS proxy" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="625" y="195" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iPBLqGsfzcVAGnoJtpEh-8" value="OpenAI servers" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="195" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iPBLqGsfzcVAGnoJtpEh-9" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="iPBLqGsfzcVAGnoJtpEh-6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="490" y="225" as="sourcePoint" />
+            <mxPoint x="540" y="175" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iPBLqGsfzcVAGnoJtpEh-12" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="iPBLqGsfzcVAGnoJtpEh-6" target="iPBLqGsfzcVAGnoJtpEh-8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="745" y="230" as="sourcePoint" />
+            <mxPoint x="795" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
