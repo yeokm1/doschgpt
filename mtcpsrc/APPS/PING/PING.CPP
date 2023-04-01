@@ -1,7 +1,7 @@
 /*
 
    mTCP Ping.cpp
-   Copyright (C) 2009-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2009-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -75,6 +75,8 @@ uint16_t PacketCount = 4;
 uint16_t PacketPayload = 32;
 
 uint16_t TimeoutSecs = 1;
+
+bool Audible = false;
 
 uint16_t PacketsSent = 0;
 uint16_t RepliesReceived = 0;
@@ -185,7 +187,7 @@ void ping_unhook( void ) {
 
 
 
-static char *CopyrightMsg= "\nmTCP Ping by M Brutman (mbbrutman@gmail.com) (C)opyright 2009-2022\nVersion: " __DATE__ "\n";
+static char *CopyrightMsg= "\nmTCP Ping by M Brutman (mbbrutman@gmail.com) (C)opyright 2009-2023\nVersion: " __DATE__ "\n";
 
 
 int main( int argc, char *argv[] ) {
@@ -432,6 +434,10 @@ void sendAndWait( ) {
       RepliesThisIteration++;
       RepliesReceived++;
       ReplyTime += elapsedTicks;
+
+      // Playing this sound costs 50ms, so be careful where you place this code.
+      if (Audible) { sound(500); delay(50); nosound( ); }
+
       startBios = TIMER_GET_CURRENT( );
       ResponseReceived = 0;
     }
@@ -461,6 +467,7 @@ void usage( void ) {
   puts( "\nping [options] <ipaddr>\n\n"
         "Options:\n"
         "  -help        Shows this help\n"
+        "  -a           Audible ping\n"
         "  -count <n>   Number of packets to send, default is 4\n"
         "  -size <n>    Size of ICMP payload to send, default is 32\n"
         "  -timeout <n> Number of seconds to wait for a response packet" );
@@ -510,6 +517,9 @@ void parseArgs( int argc, char *argv[] ) {
         puts( "Bad parameter for -timeout: Should be greater than 0" );
         usage( );
       }
+    }
+    else if ( strcmp( argv[i], "-a" ) == 0 ) {
+      Audible = true;
     }
     else {
       printf( "Unknown option: %s\n", argv[i] );

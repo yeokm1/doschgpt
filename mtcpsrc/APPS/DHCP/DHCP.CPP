@@ -1,7 +1,7 @@
 /*
 
    mTCP Dhcp.cpp
-   Copyright (C) 2008-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2008-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -54,7 +54,6 @@
 // here.
 
 
-#include <bios.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -173,7 +172,7 @@ const char *DhcpMsgName[] = {
 
 const char *CheckYourCabling_msg = "Check your cabling and packet driver settings, including the hardware IRQ.";
 
-static char *CopyrightMsg = "mTCP DHCP Client by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2022\nVersion: " __DATE__ "\n\n";
+static char *CopyrightMsg = "mTCP DHCP Client by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2023\nVersion: " __DATE__ "\n\n";
 
 
 
@@ -260,13 +259,18 @@ int main( int argc, char *argv[] ) {
 
       puts( "\nGood news everyone!\n" );
 
-      printf( "%s %s\n", Parm_Hostname, Hostname_assigned );
-      printf( "%s %s\n", Parm_Domain,   Domain_assigned );
+      printf( "%s %s\n",   Parm_Hostname,   MyHostname );
+      printf( "%s %s\n",   Parm_Domain,     Domain_assigned );
       printIpAddr( stdout, Parm_IpAddr,     MyIpAddr );
       printIpAddr( stdout, Parm_Netmask,    Netmask );
       printIpAddr( stdout, Parm_Gateway,    Gateway );
       printIpAddr( stdout, Parm_Nameserver, NameServer );
-      printf( "LEASE_TIME %lu seconds\n", OfferedLeaseTime );
+      printf( "LEASE_TIME %lu seconds\n",   OfferedLeaseTime );
+
+      if ( stricmp( MyHostname, Hostname_assigned ) != 0 ) {
+        printf("\nWarning: Your DHCP server may not have honored your hostname request.\n" );
+        printf("Requested hostname: \"%s\", Assigned hostname: \"%s\"\n", MyHostname, Hostname_assigned );
+      }
 
       printf( "\nSettings written to '%s'\n", CfgFilename );
 
@@ -332,8 +336,8 @@ DhcpStatus_t makeAttempt( int i ) {
       DhcpStatusFlag = Dhcp_UserAbort;
     }
 
-    if ( bioskey(1) != 0 ) {
-      char c = bioskey(0);
+    if ( biosIsKeyReady( ) ) {
+      char c = biosKeyRead( );
       if ( (c == 27) || (c == 3) ) {
         DhcpStatusFlag = Dhcp_UserAbort;
       }
@@ -450,7 +454,7 @@ int8_t createNewCfg( void ) {
          (stricmp( parmName, Parm_Gateway ) == 0)    ||
          (stricmp( parmName, Parm_Netmask ) == 0)    ||
          (stricmp( parmName, Parm_Nameserver ) == 0) ||
-         (stricmp( parmName, Parm_Hostname ) == 0)   ||
+         (stricmp( parmName, Parm_Hostname_Assigned ) == 0)   ||
          (stricmp( parmName, Parm_Domain ) == 0)     ||
          (stricmp( parmName, "DHCPVER" ) == 0)       ||
          (stricmp( parmName, "TIMESTAMP" ) == 0)     ||
@@ -485,7 +489,7 @@ int8_t createNewCfg( void ) {
   // Write new values
 
   if ( Hostname_assigned[0] ) {
-    if ( fprintf( newFile, "HOSTNAME %s\n", Hostname_assigned ) < 0 ) {
+    if ( fprintf( newFile, "%s %s\n", Parm_Hostname_Assigned, Hostname_assigned ) < 0 ) {
       printErrno( Msg_writing_to_temp_file );
       return -1;
     }

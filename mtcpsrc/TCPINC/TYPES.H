@@ -1,7 +1,7 @@
 /*
 
    mTCP Types.H
-   Copyright (C) 2005-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2005-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -155,7 +155,6 @@ typedef struct dosdate_t DosDate_t;
 #define getdate( x ) _dos_getdate( x )
 #define getvect( x ) _dos_getvect( x )
 #define setvect( x, y) _dos_setvect( x, y )
-#define bioskey( x ) _bios_keybrd( x )
 #define findnext( x ) _dos_findnext( x )
 #define outportb( x, y ) outp( x, y )
 

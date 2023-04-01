@@ -1,7 +1,7 @@
 /*
 
    mTCP Utils.H
-   Copyright (C) 2006-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2006-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -264,6 +264,7 @@ class Utils {
 
 extern const char Parm_PacketInt[];
 extern const char Parm_Hostname[];
+extern const char Parm_Hostname_Assigned[];
 extern const char Parm_Domain[];
 extern const char Parm_IpAddr[];
 extern const char Parm_Gateway[];

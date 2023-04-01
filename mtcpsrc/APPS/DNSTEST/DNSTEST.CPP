@@ -1,7 +1,7 @@
 /*
 
    mTCP DnsTest.cpp
-   Copyright (C) 2008-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2008-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -34,7 +34,6 @@
 
 // Command line DNS resolver.
 
-#include <bios.h>
 #include <dos.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,7 +92,7 @@ char *DnsErrors[] = {
 
 
 
-static char CopyrightMsg1[] = "mTCP DNSTest by M Brutman (mbbrutman@gmail.com) (C)opyright 2009-2022\n";
+static char CopyrightMsg1[] = "mTCP DNSTest by M Brutman (mbbrutman@gmail.com) (C)opyright 2009-2023\n";
 static char CopyrightMsg2[] = "Version: " __DATE__ "\n\n";
 
 
@@ -144,6 +143,14 @@ int main( int argc, char *argv[] ) {
     fprintf( stderr, "Error: You have not set a nameserver up.  Check the mTCP config file\n" );
     shutdown( -1 );
   }
+  else if ( rc == -3 ) {
+    fprintf( stderr, "Error: Bad target name\n" );
+    shutdown( -1 );
+  }
+  else if ( rc < 0 ) {
+    fprintf( stderr, "Error: unknown\n" );
+    shutdown( -1 );
+  }
 
 
 
@@ -159,8 +166,8 @@ int main( int argc, char *argv[] ) {
       break;
     }
 
-    if ( bioskey(1) != 0 ) {
-      char c = bioskey(0);
+    if ( biosIsKeyReady( ) ) {
+      char c = biosKeyRead( );
       if ( (c == 27) || (c == 3) ) {
         userQuit = 1;
         puts( "\nCtrl-C or ESC detected - ending!" );

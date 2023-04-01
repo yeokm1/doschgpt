@@ -6,7 +6,7 @@
 #include "network.h"
 #include "utfcp437.h"
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 
 // User configuration
 #define CONFIG_FILENAME "doschgpt.ini"

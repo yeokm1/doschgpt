@@ -1,7 +1,7 @@
 /*
 
    mTCP Udp.H
-   Copyright (C) 2006-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2006-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -92,6 +92,8 @@ class Udp {
 
 
     static void process( const unsigned char *packet, IpHeader *ip );
+
+    static uint16_t Udp::getUnusedCallbackPort( void );
 
     static int8_t registerCallback( uint16_t srcPort,
                                  void (*f)(const unsigned char *packet,

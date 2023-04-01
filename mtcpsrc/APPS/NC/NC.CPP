@@ -1,7 +1,7 @@
 /*
 
    mTCP Netcat.cpp
-   Copyright (C) 2006-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2006-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -118,7 +118,6 @@
 // 3 - Connectivity error
 // 4 - Session timeout or error after starting.  (Ctrl-Break, send err, etc.)
 
-#include <bios.h>
 #include <dos.h>
 #include <conio.h>
 #include <fcntl.h>
@@ -231,7 +230,7 @@ void __interrupt __far ctrlCHandler( ) {
 
 
 
-static char CopyrightMsg1[] = "mTCP Netcat by M Brutman (mbbrutman@gmail.com) (C)opyright 2007-2022\n";
+static char CopyrightMsg1[] = "mTCP Netcat by M Brutman (mbbrutman@gmail.com) (C)opyright 2007-2023\n";
 static char CopyrightMsg2[] = "Version: " __DATE__ "\n\n";
 
 
@@ -383,9 +382,9 @@ int main( int argc, char *argv[] ) {
         break;
       }
 
-      if ( bioskey(1) != 0 ) {
+      if ( biosIsKeyReady( ) ) {
 
-        char c = bioskey(0);
+        char c = biosKeyRead( );
 
         if ( (c == 27) || (c == 3) ) {
           rc = -1;
@@ -579,11 +578,11 @@ int main( int argc, char *argv[] ) {
 
     // Check for keyboard input.
 
-    if ( (isKeyCached == 0) && bioskey(1) ) {
+    if ( (isKeyCached == 0) && biosIsKeyReady( ) ) {
 
       // We are not holding a key and a new keystroke is ready.
 
-      uint16_t key = bioskey( 0 );
+      uint16_t key = biosKeyRead( );
       uint8_t ekey = key >> 8;
 
       // Is this a special key?

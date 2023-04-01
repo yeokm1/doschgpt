@@ -1,8 +1,7 @@
-
 /*
 
    mTCP Tcp.cpp
-   Copyright (C) 2006-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2006-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -1073,7 +1072,7 @@ int8_t near TcpSocket::sendPacket( TcpBuffer *buf ) {
   packetPtr->tcp.setTcpHlen( 20 );
 
 
-  packetPtr->tcp.codeBits = TCP_CODEBITS_ACK; // Default is always send ACK
+  packetPtr->tcp.setCodeBits( TCP_CODEBITS_ACK ); // Default is always send ACK
 
 
   // Performance: Our normal path is ESTABLISHED so skip the switch
@@ -1086,11 +1085,11 @@ int8_t near TcpSocket::sendPacket( TcpBuffer *buf ) {
     case TCP_STATE_SYN_SENT: {
 
       if ( state == TCP_STATE_SYN_SENT ) {
-        packetPtr->tcp.codeBits = TCP_CODEBITS_SYN;
+        packetPtr->tcp.setCodeBits( TCP_CODEBITS_SYN );
         packetPtr->tcp.acknum = 0;
       }
       else {
-        packetPtr->tcp.codeBits = TCP_CODEBITS_SYN | TCP_CODEBITS_ACK;
+        packetPtr->tcp.setCodeBits( TCP_CODEBITS_SYN | TCP_CODEBITS_ACK );
       }
 
       seqNum++;
@@ -1141,7 +1140,7 @@ int8_t near TcpSocket::sendPacket( TcpBuffer *buf ) {
       if ( (buf->isForceAckOnly( ) == false) && (outgoing.entries == 1) ) {
 
         TRACE_TCP(( "     Set FIN bit on last packet\n" ));
-        packetPtr->tcp.codeBits |= TCP_CODEBITS_FIN;
+        packetPtr->tcp.addCodeBits( TCP_CODEBITS_FIN );
         seqNum++;
 
         if ( state == TCP_STATE_SEND_FIN2 ) {
@@ -1160,7 +1159,7 @@ int8_t near TcpSocket::sendPacket( TcpBuffer *buf ) {
 
   } // end if !ESTABLISHED
   else {
-    if ( buf->dataLen ) packetPtr->tcp.codeBits |= TCP_CODEBITS_PSH;
+    if ( buf->dataLen ) packetPtr->tcp.addCodeBits( TCP_CODEBITS_PSH );
   }
 
   // Cache this away for later - makes it easier to determine
@@ -1169,7 +1168,7 @@ int8_t near TcpSocket::sendPacket( TcpBuffer *buf ) {
 
 
   packetPtr->tcp.acknum = htonl( ackNum );
-  if ( (buf->dataLen == 0) && (packetPtr->tcp.codeBits == TCP_CODEBITS_ACK ) ) {
+  if ( (buf->dataLen == 0) && (packetPtr->tcp.getCodeBits( ) == TCP_CODEBITS_ACK ) ) {
     buf->setWasAckOnly( );
   }
 
@@ -1293,12 +1292,12 @@ int8_t near TcpSocket::sendPacket( TcpBuffer *buf ) {
 void near TcpSocket::sendResetPacket( IpHeader *ip, TcpHeader *tcp, uint16_t incomingDataLen ) {
 
   // Do not respond to reset packets
-  if ( tcp->codeBits & TCP_CODEBITS_RST ) return;
+  if ( tcp->getCodeBits( ) & TCP_CODEBITS_RST ) return;
 
 
   uint32_t seqNum;
 
-  if ( tcp->codeBits & TCP_CODEBITS_ACK ) {
+  if ( tcp->getCodeBits( ) & TCP_CODEBITS_ACK ) {
     seqNum = ntohl( tcp->acknum );
   }
   else {
@@ -1309,7 +1308,7 @@ void near TcpSocket::sendResetPacket( IpHeader *ip, TcpHeader *tcp, uint16_t inc
 
   // If it was a SYN packet, bump the ACK count by 1 just like
   // on a normal SYN packet.
-  if ( tcp->codeBits & TCP_CODEBITS_SYN ) {
+  if ( tcp->getCodeBits( ) & TCP_CODEBITS_SYN ) {
     ackNum++;
   }
 
@@ -1327,7 +1326,7 @@ void near TcpSocket::sendResetPacket( IpHeader *ip, TcpHeader *tcp, uint16_t inc
   rp.tcp.setTcpHlen( 20 );
 
   // ACK is on because they sent us the packet first, and it had a seq num.
-  rp.tcp.codeBits = TCP_CODEBITS_RST | TCP_CODEBITS_ACK;
+  rp.tcp.setCodeBits( TCP_CODEBITS_RST | TCP_CODEBITS_ACK );
 
   rp.tcp.acknum = htonl( ackNum );
 
@@ -1545,12 +1544,12 @@ void near Tcp::process2( uint8_t *packet, IpHeader *ip, TcpHeader *tcp, TcpSocke
   uint16_t incomingDataLen = ip->payloadLen( ) - tcp->getTcpHlen( );
 
   // What bits are set?  Flags are set to 0 or non-zero.
-  uint8_t isUrgSet = tcp->codeBits & TCP_CODEBITS_URG;
-  uint8_t isAckSet = tcp->codeBits & TCP_CODEBITS_ACK;
-  uint8_t isPshSet = tcp->codeBits & TCP_CODEBITS_PSH;
-  uint8_t isRstSet = tcp->codeBits & TCP_CODEBITS_RST;
-  uint8_t isSynSet = tcp->codeBits & TCP_CODEBITS_SYN;
-  uint8_t isFinSet = tcp->codeBits & TCP_CODEBITS_FIN;
+  uint8_t isUrgSet = tcp->getCodeBits( ) & TCP_CODEBITS_URG;
+  uint8_t isAckSet = tcp->getCodeBits( ) & TCP_CODEBITS_ACK;
+  uint8_t isPshSet = tcp->getCodeBits( ) & TCP_CODEBITS_PSH;
+  uint8_t isRstSet = tcp->getCodeBits( ) & TCP_CODEBITS_RST;
+  uint8_t isSynSet = tcp->getCodeBits( ) & TCP_CODEBITS_SYN;
+  uint8_t isFinSet = tcp->getCodeBits( ) & TCP_CODEBITS_FIN;
 
   uint32_t incomingSeqNum = ntohl(tcp->seqnum);
   uint32_t incomingAckNum = ntohl(tcp->acknum);
@@ -1596,7 +1595,7 @@ void near Tcp::process2( uint8_t *packet, IpHeader *ip, TcpHeader *tcp, TcpSocke
   if ( socket->state == TCP_STATE_LISTEN ) {
 
     // The only allowable codebit is SYN.  Send RESET on anything else.
-    if ( tcp->codeBits == TCP_CODEBITS_SYN ) {
+    if ( tcp->getCodeBits( ) == TCP_CODEBITS_SYN ) {
       socket->processSyn( ip, tcp, incomingSeqNum );
     }
     else {
@@ -2173,10 +2172,10 @@ void near TcpSocket::processSyn( IpHeader *ip, TcpHeader *tcp, uint32_t incoming
               newSocket->dstHost[2], newSocket->dstHost[3], newSocket->dstPort,
               newSocket->srcPort ));
 
-  connectPacket.pkt.dataLen = 0;
+  newSocket->connectPacket.pkt.dataLen = 0;
 
   // No need to check the return code; it won't fail.
-  newSocket->enqueue( &connectPacket.pkt );
+  newSocket->enqueue( &newSocket->connectPacket.pkt );
 
 }
 #endif

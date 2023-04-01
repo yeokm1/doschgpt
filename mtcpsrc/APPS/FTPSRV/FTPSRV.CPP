@@ -1,7 +1,7 @@
 /*
 
    mTCP FtpSrv.cpp
-   Copyright (C) 2009-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2009-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -54,7 +54,6 @@
 // RFC 1579 - Firewall-Friendly FTP
 
 
-#include <bios.h>
 #include <ctype.h>
 #include <direct.h>
 #include <dos.h>
@@ -132,7 +131,7 @@ static char Msg_550_Error_Removing_v[] =     "550 Error removing %s" _NL_;
 
 static char *Msg_214_Help[] = {
   "214-Welcome to the mTCP FTP server, Version: " __DATE__ _NL_,
-  " USER  PASS  REIN  ACCT  REST" _NL_, 
+  " USER  PASS  QUIT  REIN  ACCT  REST" _NL_, 
   " RNFR  RNTO  DELE" _NL_, 
   " CWD   XCWD  CDUP  XCUP  PWD   XPWD  MKD   XMKD  RMD   XRMD" _NL_, 
   " PASV  PORT  ABOR  LIST  NLST  RETR  STOR  STOU  APPE" _NL_, 
@@ -321,7 +320,7 @@ char *MotdBuffer = NULL;
 
 // Toggles
 //
-uint8_t Sound = 1;
+uint8_t Sound = 0;
 
 
 
@@ -399,11 +398,16 @@ int doesExist( const char *realPath ) {
 
 
 
+// Set to 1 when the user hits Ctrl-C or Alt-X the first time,
+// Set to 2 when the user hits Ctrl-C or Alt-X the second time or some other
+// shutdown mechanism is triggered.
+
 int ShutdownRequested = 0;
 
 
+static char ConfirmEndMsg[] = "Press Ctrl-C or Alt-X one more time to shut down or another key to cancel.\n";
 
-static char CopyrightMsg1[] = "mTCP FtpSrv by M Brutman (mbbrutman@gmail.com) (C)opyright 2010-2022\n";
+static char CopyrightMsg1[] = "mTCP FtpSrv by M Brutman (mbbrutman@gmail.com) (C)opyright 2010-2023\n";
 static char CopyrightMsg2[] = "Version: " __DATE__ "\n\n";
 
 int main( int argc, char *argv[] ) {
@@ -525,18 +529,23 @@ int main( int argc, char *argv[] ) {
         // Check the keyboard
 
         if ( CtrlBreakDetected ) {
-          ShutdownRequested++;
+          // Ctrl-Break: Go straight to shutdown, they don't have to hit it twice.
+          ShutdownRequested = 2;
         }
         else {
 
-          if ( bioskey(1) ) {
+          if ( biosIsKeyReady( ) ) {
 
-            uint16_t key = bioskey(0);
+            uint16_t key = biosKeyRead( );
 
             if ( (key & 0xff) == 0 ) {
 
               // Function key
               key = key >> 8;
+
+              // Pressed Alt-X to shutdown once already; did they do it again?
+              // If not, reset the counter.
+              if ( (ShutdownRequested == 1) && (key != 45) ) ShutdownRequested = 0;
 
               if ( key == 22 ) {        // Alt-U, Users
                 doConsoleShowUsers( );
@@ -548,7 +557,12 @@ int main( int argc, char *argv[] ) {
                 doConsoleHelp( );
               }
               else if ( key == 45 ) {   // Alt-X, EndProgram
+                // Use ++ here in case another mechanism has already triggered a shutdown.
+                // Those shold not be reset by the user entering something.
                 ShutdownRequested++;
+                if ( ShutdownRequested == 1 ) {
+                  addToScreen( 1, ConfirmEndMsg );
+                }
               }
               else if ( key == 48 ) {   // Alt-B, BeepToggle
                 Sound = !Sound;
@@ -561,8 +575,17 @@ int main( int argc, char *argv[] ) {
               // Normal key
               key = key & 0xff;
 
+              // Pressed Alt-X to shutdown once already; did they do it again?
+              // If not, reset the counter.
+              if ( (ShutdownRequested == 1) && (key != 3) ) ShutdownRequested = 0;
+
               if ( key == 3 ) {
+                // Use ++ here in case another mechanism has already triggered a shutdown.
+                // Those shold not be reset by the user entering something.
                 ShutdownRequested++;
+                if ( ShutdownRequested == 1 ) {
+                  addToScreen( 1, ConfirmEndMsg );
+                }
               }
 
             }
@@ -571,7 +594,7 @@ int main( int argc, char *argv[] ) {
 
         }
 
-        if ( ShutdownRequested ) {
+        if ( ShutdownRequested > 1 ) {
           addToScreen( 1, "Shutdown requested\n" );
           // Start an involuntary close on everything
           for ( uint16_t i=0; i < FtpClient::activeClients; i++ ) {
@@ -1379,7 +1402,7 @@ void doSite( FtpClient *client, char *nextTokenPtr ) {
       return;
     }
 
-    ShutdownRequested++;
+    ShutdownRequested = 2;
     client->addToOutput_var( "211-Server shutting down" _NL_ "211 OK" _NL_ );
 
   }

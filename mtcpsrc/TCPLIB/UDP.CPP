@@ -1,7 +1,7 @@
 /*
 
    mTCP Udp.cpp
-   Copyright (C) 2005-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2005-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -92,6 +92,40 @@ void Udp::dumpStats( FILE *stream ) {
   fprintf( stream, "Udp: Sent %lu Rcvd %lu NoHandler %lu Checksum errs %lu Fragments sent %lu\n",
            Packets_Sent, Packets_Received, NoHandler, ChecksumErrors, Fragments_Sent );
 }
+
+
+
+
+// Udp::getUnusedCallbackPort
+//
+// Return a somewhat random port that can be used for a callback that is not
+// already in use.
+
+uint16_t Udp::getUnusedCallbackPort( void ) {
+
+  while ( 1 ) {
+
+    // Too lazy to use the random number generator so lets use the low
+    // 16 bits of the BIOS time of day counter.
+    uint16_t proposedPort = *((uint16_t far *)(MK_FP(0x40, 0x6C)));
+    if ( proposedPort < 1024 ) proposedPort += 1024;
+
+    bool found = false;
+    for (uint8_t i=0; i < callbackPorts; i++ ) {
+      if ( callbackList[i] == proposedPort ) {
+        found = true;
+        break;
+      }
+    }
+
+    if ( found == false ) {
+      return proposedPort;
+    }
+
+  }
+
+}
+
 
 
 // Udp::registerCallback

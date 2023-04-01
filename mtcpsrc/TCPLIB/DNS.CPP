@@ -1,7 +1,7 @@
 /*
 
    mTCP Dns.cpp
-   Copyright (C) 2008-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2008-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -250,10 +250,13 @@ void Dns::stop( void ) {
 //
 // -1: Name too long
 // -2: No NameServer set
+// -3: Bad input
 
 static char fullServerName[DNS_MAX_NAME_LEN];
 
 int8_t Dns::resolve( const char *serverName, IpAddr_t target, uint8_t sendReq ) {
+
+  if ( *serverName == 0 ) return -3;
 
   // Is it an IP address?
 
@@ -957,19 +960,14 @@ void Dns::udpHandler(const unsigned char *packet, const UdpHeader *udp ) {
 // packets to be dropped.  If something goes too long this function
 // will pick up where we left off.
 
-void Dns::drivePendingQuery( void ) {
-
-  if ( queryPending == 0 ) {
-    TRACE_DNS_WARN(( "Dns: drivePendingQuery called with no pending query\n" ));
-    return;
-  }
+void Dns::drivePendingQuery1( void ) {
 
   if ( Timer_diff( pendingQuery.lastUpdate, TIMER_GET_CURRENT( ) ) < TIMER_MS_TO_TICKS( DNS_RETRY_THRESHOLD ) ) return;
 
   if ( Timer_diff( pendingQuery.start, TIMER_GET_CURRENT( ) ) > TIMER_MS_TO_TICKS( DNS_TIMEOUT ) ) {
     queryPending = 0;
     lastQueryRc = Timeout;
-    TRACE_DNS_WARN(( "Dns: Timout finding: %s\n", pendingQuery.originalTarget ));
+    TRACE_DNS_WARN(( "Dns: Timeout finding: %s\n", pendingQuery.originalTarget ));
     return;
   }
 

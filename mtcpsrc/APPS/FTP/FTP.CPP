@@ -1,7 +1,7 @@
 /*
 
    mTCP Ftp.cpp
-   Copyright (C) 2009-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2009-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -44,7 +44,6 @@
 */
 
 
-#include <bios.h>
 #include <conio.h>
 #include <ctype.h>
 #include <direct.h>
@@ -370,7 +369,7 @@ const char NoMatches_msg[] = "No names on the remote server matched.";
 const char Spaces[] = "                                        ";
 
 
-static char CopyrightMsg[] = "mTCP FTP by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2022\nVersion: " __DATE__ "\n";
+static char CopyrightMsg[] = "mTCP FTP by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2023\nVersion: " __DATE__ "\n";
 
 int main( int argc, char *argv[] ) {
 
@@ -819,8 +818,8 @@ void processUserInput2( char *lineBuffer ) {
         int startY = wherey( );
         printf( PressAKey_msg );
         fflush( stdout );
-        while ( bioskey(1) == 0 ) { }
-        bioskey(0);
+        while ( !biosIsKeyReady( ) ) { }
+        biosKeyRead( );
 
         // Write enough spaces to clear out the prompt
         gotoxy( startX, startY );
@@ -2293,7 +2292,7 @@ int8_t readFileList( void ) {
                 printf( PressAKey_msg );
                 fflush( stdout );
 
-                while ( bioskey(1) == 0 ) {
+                while ( !biosIsKeyReady( ) ) {
                   PACKET_PROCESS_SINGLE;
                   Arp::driveArp( );
                   Tcp::drivePackets( );
@@ -2302,7 +2301,7 @@ int8_t readFileList( void ) {
                 puts("");
 
                 // Eat new keystroke
-                bioskey(0);
+                biosKeyRead( );
 
                 lines = 0;
               }
@@ -3151,9 +3150,9 @@ int readConsole( char *buffer, int bufLen, bool enableCmdEdit ) {
     }
 
 
-    if ( bioskey(1) ) {
+    if ( biosIsKeyReady( ) ) {
 
-      uint16_t key = bioskey(0);
+      uint16_t key = biosKeyRead( );
 
       if ( (key & 0xff) == 0 ) {
 

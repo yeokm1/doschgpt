@@ -1,7 +1,7 @@
 /*
 
    mTCP Utils.cpp
-   Copyright (C) 2006-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2006-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -113,6 +113,7 @@ uint8_t mTCP_releaseTimesliceEnabled = 0;
 
 const char Parm_PacketInt[]            = "PACKETINT";
 const char Parm_Hostname[]             = "HOSTNAME";
+const char Parm_Hostname_Assigned[]    = "HOSTNAME_ASSIGNED";
 const char Parm_Domain[]               = "DOMAIN";
 const char Parm_IpAddr[]               = "IPADDR";
 const char Parm_Gateway[]              = "GATEWAY";
@@ -1004,7 +1005,7 @@ void Utils::endStack( void ) {
   #endif
 
 
-  //To solve later
+  // YKM: Unknown error that only happens on OpenWatcom 2.0 beta and not 1.9, don't have to display to user
   // if ( _heapchk( ) != _HEAPOK ) {
   //   fprintf( stderr, "End: heap is corrupted!\n" );
   // }
@@ -1153,12 +1154,12 @@ char *Utils::getNextToken( char *input, char *target, uint16_t bufLen ) {
         }
         if ( input[i] == '"' ) {
           st = InQuoteRegion;
-          target[j++] = '"';
+          if ( j < bufLen ) target[j++] = '"';
           break;
         }
         st = InQuoteRegion;
-        target[j++] = '"';
-        target[j++] = input[i];
+        if ( j < bufLen ) target[j++] = '"';
+        if ( j < bufLen ) target[j++] = input[i];
         break;
       }
     }

@@ -124,7 +124,8 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 ```
 
 # Changelog
-
+* v0.4 (1 Apr 2023):
+* * Updated to use MTCP 2023-03-31
 * v0.3 (1 Apr 2023):
 * * Display characters like accents from [Code Page 437](https://en.wikipedia.org/wiki/Code_page_437)
 * * Escape " and \ characters of user input

@@ -1,7 +1,7 @@
 /*
 
    mTCP Dns.H
-   Copyright (C) 2008-2022 Michael B. Brutman (mbbrutman@gmail.com)
+   Copyright (C) 2008-2023 Michael B. Brutman (mbbrutman@gmail.com)
    mTCP web page: http://www.brutman.com/mTCP
 
 
@@ -208,6 +208,7 @@ class Dns {
 
 
     static void   sendRequest( IpAddr_t resolver, const char *target, uint16_t ident );
+    static void   drivePendingQuery1( void );
     static void   drivePendingQuery2( void );
     static void   addOrUpdate( const char *targetName, IpAddr_t addr );
     static int8_t find( const char *name );
@@ -246,7 +247,9 @@ class Dns {
     static inline DNS_Response_Code_t getQueryRc( void ) { return lastQueryRc; }
 
     // User needs to call this if a query is pending
-    static void drivePendingQuery( void );
+    static inline void drivePendingQuery( void ) {
+      if ( queryPending ) drivePendingQuery1( );
+    }
 
     static void flushCache( void );
     static void deleteFromCache( const char *target );

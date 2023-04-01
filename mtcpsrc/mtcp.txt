@@ -1,5 +1,5 @@
 mTCP Overview
-2022-07-01 Version
+2023-03-31 Version
 Michael Brutman (mbbrutman@gmail.com)
 
 Home page: http://www.brutman.com/mTCP/mTCP.html
@@ -113,7 +113,7 @@ to choose the shelter.)
 
 Licensing
 
-This version (2022-07-01) of mTCP is available as open
+This version (2023-03-31) of mTCP is available as open
 source software under the terms of the GNU General Public License
 version 3.  Please see COPYING.TXT which includes the terms of the
 license.
