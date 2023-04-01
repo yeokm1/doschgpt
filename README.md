@@ -6,11 +6,11 @@ A proof-of-concept ChatGPT client for DOS.
 
 Photos of the client running on [my 1984 IBM 5155 Portable PC](https://github.com/yeokm1/retro-configs/tree/master/desktops/ibm-5155) with a 4.77Mhz Intel 8088 CPU with MS-DOS 6.22.
 
-As there are no native HTTPS for DOS, a [HTTP-to-HTTPS proxy](https://github.com/yeokm1/http-to-https-proxy) like this I've written running on a modern machine is needed.
+As there are no native HTTPS APIs for DOS, a [HTTP-to-HTTPS proxy](https://github.com/yeokm1/http-to-https-proxy) like this I've written running on a modern machine is needed.
 
 This program is heavily based on sample code in the DOS networking [MTCP library](http://brutmanlabs.org/mTCP/). The program also requires a [DOS Packet Driver](https://en.wikipedia.org/wiki/PC/TCP_Packet_Driver) to be loaded and MTCP to be set for the machine/VM.
 
-**This program was written in a short time as a toy project. It has not been vigorously tested thus is NOT meant for production use.**
+**This program was written in a short time as a toy project. It has not been vigorously tested thus is NOT meant for "production" use.**
 
 ## Using the application
 
@@ -18,7 +18,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 1. OpenAI requires an API key to use its APIs. Follow the [instructions on their website](https://platform.openai.com/account/api-keys) to obtain this key before proceeding.
 
-2. Downland and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases)
+2. Download and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases)
 
 3. The application requires a config file named `doschgpt.ini`. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
 
@@ -35,10 +35,10 @@ Application binary can be found in the `releases` directory or Github Releases s
 4. Ensure that your DOS environment has loaded the following
 
 * Packet Driver
-* MTCP Config Environment variable
+* MTCP Config Environment variable `MTCPCFG`
 * MTCP Config file configured by DHCP
 
-5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to leave. Your may use the following arguments for debug use
+5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following arguments for debug use
 
 * `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request
 * `-drr`: Display the raw server return headers and json reply
@@ -51,7 +51,7 @@ Parsed options will be displayed.
 
 To compile this application, you have to use Open Watcom 2.0 beta which you can download from [here](https://github.com/open-watcom/open-watcom-v2/releases/tag/2023-04-01-Build). Open Watcom 2.0 for 64-bit Windows which was released on 2023-04-01 02:52:44 is used. The v1.9 version seems to create binaries with issues on some platforms.
 
-During installation, Open Watcom may prompt to install the environment variables. I chose to not use that to avoid having that variables being permanent. Instead I use a batch file to set the variables whenever I need to compile.
+During installation, Open Watcom may prompt to install the environment variables. I chose to not do that to avoid having those variables being permanent. Instead I use a batch file to set the variables whenever I need to compile.
 
 The program is compiled via a Makefile that is referenced from MTCP.
 
@@ -62,7 +62,7 @@ cd doschgpt-code
 # If using Open Watcom v2.0 beta installed to C:\WATCOM2
 20setenv.bat
 
-# If using Open Watcom v1.9 installed to C:\WATCOM
+# If using Open Watcom v1.9 installed to C:\WATCOM (Not recommended)
 19setenv.bat
 
 # To compile
@@ -75,7 +75,7 @@ PTACH.exe doschgpt.exe doschgpt.map -ml
 wmake clean
 ```
 
-This application compiles against the [MTCP library](http://brutmanlabs.org/mTCP/). I have unzipped the latest version [mTCP-src_2022-07-01.zip](http://www.brutman.com/mTCP/download/mTCP-src_2022-07-01.zip) at the time of development to the `mtcpsrc` directory. When Brutman updates this library again in future, simply replace the contents of the `mtcpsrc` directory with the new library.
+This application compiles against the [MTCP library](http://brutmanlabs.org/mTCP/). I have unzipped the latest version [mTCP-src_2023-03-31.zip](http://www.brutman.com/mTCP/download/mTCP-src_2023-03-31.zip) at the time of development to the `mtcpsrc` directory. When Brutman updates this library again in future, simply replace the contents of the `mtcpsrc` directory with the new library.
 
 `PTACH.exe` is a Win NT program compiled from MTCP sources.
 
