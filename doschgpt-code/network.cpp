@@ -15,8 +15,10 @@
 #define API_CHAT_COMPLETION "POST /v1/chat/completions HTTP/1.1\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nHost: api.openai.com\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
 #define API_BODY "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
 
-#define API_BODY_SIZE_BUFFER 4096
+#define API_BODY_SIZE_BUFFER 6144
 #define SEND_RECEIVE_BUFFER 16384
+
+#define TIME_TO_WAIT_AFTER_LAST_FRAME 200
 
 char * api_body_buffer = NULL;
 char * sendRecvBuffer = NULL;
@@ -195,6 +197,8 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
         char * pointerToReceiveAt = to_receive;
         int bytesReceivedSoFar = 0;
 
+        clockTicks_t timeReceivedLastFrame = startTime;
+
         while(!mySocket->isClosed()){
 
             int bytesAbleToReceive = to_receive_size - bytesReceivedSoFar;
@@ -205,10 +209,15 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
 
             if(bytesReceivedThisInstant > 0){
                 receivedfirstByte = true;
+                timeReceivedLastFrame = TIMER_GET_CURRENT();
             } else {
                 // We no longer get any bytes after receiving something. Menas end of message
                 if(receivedfirstByte){
-                    break;
+                    // Short timeout after we no longer receive any bytes
+                    if(Timer_diff(timeReceivedLastFrame, TIMER_GET_CURRENT()) > TIMER_MS_TO_TICKS(TIME_TO_WAIT_AFTER_LAST_FRAME)) {
+                        // We don't break immediately as we might just have temporarily 0 bytes
+                        break;
+                    }
                 }
             }
 

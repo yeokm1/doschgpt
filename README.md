@@ -22,7 +22,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 3. The application requires a config file named `doschgpt.ini`. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
 
-* API key: Place your key without qoutes (API key in this sample file has been revoked)
+* API key: Place your key without quotes (API key in this sample file has been revoked)
 * Model: Language model to use, can use `gpt-3.5-turbo`
 * Request Temperature: How random the completion will be. More [details](https://platform.openai.com/docs/guides/chat/instructing-chat-models)
 * Proxy hostname: Hostname IP of the proxy
@@ -49,7 +49,7 @@ Parsed options will be displayed.
 
 ## Compilation
 
-To compile this application, you have to use Open Watcom 2.0 beta which you can download from [here](https://github.com/open-watcom/open-watcom-v2/releases/tag/2023-03-04-Build). Open Watcom 2.0 for 64-bit Windows which was released on 2023-03-04 02:28:15 is used. The v1.9 version seems to create binaries with issues on some platforms.
+To compile this application, you have to use Open Watcom 2.0 beta which you can download from [here](https://github.com/open-watcom/open-watcom-v2/releases/tag/2023-04-01-Build). Open Watcom 2.0 for 64-bit Windows which was released on 2023-04-01 02:52:44 is used. The v1.9 version seems to create binaries with issues on some platforms.
 
 During installation, Open Watcom may prompt to install the environment variables. I chose to not use that to avoid having that variables being permanent. Instead I use a batch file to set the variables whenever I need to compile.
 
@@ -125,6 +125,13 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 
 # Changelog
 
+* v0.3 (1 Apr 2023):
+* * Display characters like accents from [Code Page 437](https://en.wikipedia.org/wiki/Code_page_437)
+* * Escape " and \ characters of user input
+* * Print \ without escape from JSON
+* * Add a 4096 byte buffer for post-escaped message string, API Body buffer increased to 6144 bytes
+* * Further wait for 200ms after the last non-zero byte receive to be sure there are no more bytes incoming from the socket
+* * Compiled with Open Watcom 2.0 Beta (2023-04-01 build)
 * v0.2 (30 Mar 2023):
 * * Compiled with Open Watcom 2.0 Beta (2023-03-04 build) that solves the issue of app not starting on some PCs.
 * * Show date and time of compilation

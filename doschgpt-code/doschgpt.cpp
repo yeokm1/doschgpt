@@ -4,8 +4,9 @@
 #include <string.h>
 
 #include "network.h"
+#include "utfcp437.h"
 
-#define VERSION "0.2"
+#define VERSION "0.3"
 
 // User configuration
 #define CONFIG_FILENAME "doschgpt.ini"
@@ -28,15 +29,19 @@ bool debug_showRequestInfo = false;
 bool debug_showRawReply = false;
 
 // Message Request
-#define SIZE_MESSAGE_TO_SEND 2048
-char * messageToSend;
+#define SIZE_MSG_TO_SEND 4096
+char * messageToSendToNet;
+
+#define SIZE_MESSAGE_IN_BUFFER 2048
+char * messageInBuffer;
 
 volatile bool inProgress = true;
 
 
 // Called when ending the app
 void endFunction(){
-  free(messageToSend);
+  free(messageToSendToNet);
+  free(messageInBuffer);
   network_stop();
 
   printf("Ended DOS ChatGPT client\n");
@@ -99,6 +104,28 @@ bool openAndProcessConfigFile(char * filename){
 
 }
 
+void escapeThisString(char * source, int sourceSize, char * dest, int destMaxSize){
+
+  memset(dest, 0, destMaxSize);
+
+  int destIndex = 0;
+
+  for(int i = 0; i < sourceSize; i++){
+
+    char currentSourceChar = source[i];
+
+    // Need to escape " and backslash
+    if(currentSourceChar == '"' || currentSourceChar == '\\'){
+      dest[destIndex] = '\\';
+      destIndex++;
+    }
+
+    dest[destIndex] = currentSourceChar;
+    destIndex++;
+  }
+
+}
+
 int main(int argc, char * argv[]){
   printf("Started DOS ChatGPT client %s by Yeo Kheng Meng\n", VERSION);
   printf("Compiled on %s %s\n\n", __DATE__, __TIME__);
@@ -143,9 +170,17 @@ int main(int argc, char * argv[]){
     return -1;
   }
 
-  messageToSend = (char *) calloc (SIZE_MESSAGE_TO_SEND, sizeof(char));
-  if(messageToSend == NULL){
-    printf("Cannot allocate memory for messageToSend\n");
+  messageToSendToNet = (char *) calloc (SIZE_MSG_TO_SEND, sizeof(char));
+  if(messageToSendToNet == NULL){
+    printf("Cannot allocate memory for messageToSendToNet\n");
+    network_stop();
+    return -1;
+  }
+
+  messageInBuffer = (char *) calloc (SIZE_MESSAGE_IN_BUFFER, sizeof(char));
+  if(messageInBuffer == NULL){
+    printf("Cannot allocate memory for messageInBuffer\n");
+    free(messageToSendToNet);
     network_stop();
     return -1;
   }
@@ -157,7 +192,7 @@ int main(int argc, char * argv[]){
 
   while(inProgress){
 
-    // Detect if kep is pressed
+    // Detect if key is pressed
     if ( _bios_keybrd(_KEYBRD_READY) ) {
       char character = _bios_keybrd(_KEYBRD_READ);
 
@@ -176,28 +211,41 @@ int main(int argc, char * argv[]){
         }
 
         printf("\n");
+
+        escapeThisString(messageInBuffer, currentMessagePos, messageToSendToNet, SIZE_MSG_TO_SEND);
         COMPLETION_OUTPUT output;
         memset((void*) &output, 0, sizeof(COMPLETION_OUTPUT));
-        network_get_completion(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSend, config_req_temperature, &output);
+        network_get_completion(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
 
         if(output.error == COMPLETION_OUTPUT_ERROR_OK){
           printf("\nChatGPT:\n");
 
-          //To scan for the newline \n character to convert to actual newline command for printf
+          //To scan for the special format to convert to formatted text
           for(int i = 0; i < output.contentLength; i++){
             char currentChar = output.content[i];
             char nextChar = output.content[i + 1];
+            char followingChar = output.content[i + 2];
             
-            //ChatGPT has given us a newline, let's print it then advance 2 steps
+            //Given \n print the newline then advance 2 steps
             if(currentChar == '\\' && nextChar == 'n'){
               printf("\n");
               i++;
-            // Given a ", print the quote and advance 2 steps
+            // Given " print the " then advance 2 steps
             } else if(currentChar == '\\' && nextChar == '\"'){
               printf("\"");
               i++;
+            // Given \ print the \ then advance 2 steps
+            } else if(currentChar == '\\' && nextChar == '\\'){
+              printf("\\");
+              i++;
             } else {
-              printf("%c", currentChar);
+              CONVERSION_OUTPUT conversionResult = utf_to_cp437(currentChar, nextChar, followingChar);
+              unsigned char characterToPrint = conversionResult.character;
+              int numCharactersToAdvance = conversionResult.charactersUsed - 1;
+
+              printf("%c", characterToPrint);
+              i += numCharactersToAdvance;
+
             }
           }
           
@@ -221,16 +269,16 @@ int main(int argc, char * argv[]){
 
         printf("\nMe:\n");
 
-        memset(messageToSend, 0, SIZE_MESSAGE_TO_SEND);
+        memset(messageInBuffer, 0, SIZE_MESSAGE_IN_BUFFER);
         currentMessagePos = 0;
       } else if((character >= ' ') && (character <= '~')){
 
-        if(currentMessagePos >= SIZE_MESSAGE_TO_SEND){
+        if(currentMessagePos >= SIZE_MESSAGE_IN_BUFFER){
           printf("Reach buffer max\n");
           continue;
         }
 
-        messageToSend[currentMessagePos] = character;
+        messageInBuffer[currentMessagePos] = character;
         currentMessagePos++;
         printf("%c", character);
         fflush(stdout);
@@ -242,7 +290,7 @@ int main(int argc, char * argv[]){
           // Remove previous character
           printf("%s", "\b \b");
           currentMessagePos--;
-          messageToSend[currentMessagePos] = '\0';
+          messageInBuffer[currentMessagePos] = '\0';
 
           fflush(stdout);
         }
