@@ -124,6 +124,8 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 ```
 
 # Changelog
+* v0.5 (5 Apr 2023):
+* * Corrected bug where the size of bytes to read from MTCP is always the same even though buffer already has some bytes inside from previous read.
 * v0.4 (1 Apr 2023):
 * * Updated to use MTCP 2023-03-31
 * v0.3 (1 Apr 2023):
