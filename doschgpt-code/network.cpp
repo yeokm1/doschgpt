@@ -205,9 +205,11 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
             
             //Receive as much as we can then loop again as sometimes cannot fill up the buffer on first try
             bytesReceivedThisInstant = mySocket->recv((unsigned char *) pointerToReceiveAt, bytesAbleToReceive);
-            pointerToReceiveAt = pointerToReceiveAt + bytesReceivedThisInstant;
 
             if(bytesReceivedThisInstant > 0){
+                pointerToReceiveAt = pointerToReceiveAt + bytesReceivedThisInstant;
+                bytesReceivedSoFar += bytesReceivedThisInstant;
+
                 receivedfirstByte = true;
                 timeReceivedLastFrame = TIMER_GET_CURRENT();
             } else {
