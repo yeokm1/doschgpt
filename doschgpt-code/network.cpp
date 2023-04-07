@@ -13,9 +13,10 @@
 #include "timer.h"
 
 #define API_CHAT_COMPLETION "POST /v1/chat/completions HTTP/1.1\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nHost: api.openai.com\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
-#define API_BODY "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
+#define API_BODY_INITIAL "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
+#define API_BODY_SUBSEQUENT "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}, {\"role\": \"assistant\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
 
-#define API_BODY_SIZE_BUFFER 6144
+#define API_BODY_SIZE_BUFFER 15000
 #define SEND_RECEIVE_BUFFER 16384
 
 #define TIME_TO_WAIT_AFTER_LAST_FRAME 200
@@ -252,8 +253,15 @@ bool network_get_completion(char * hostname, int port, char * api_key, char * mo
     char * tempMessage = (char*) calloc(messageLength + 1, sizeof(char));
     memcpy(tempMessage, message, messageLength);
 
+    int actual_body_size = 0;
+
     memset(api_body_buffer, 0, API_BODY_SIZE_BUFFER);
-    int actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY, model, message, temperature);
+
+    if(previousMessage != NULL && previousGPTReply != NULL){
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY_SUBSEQUENT, model, previousMessage, previousGPTReply, message, temperature);
+    } else {
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY_INITIAL, model, message, temperature);
+    }
 
     memset(sendRecvBuffer, 0, SEND_RECEIVE_BUFFER);
     snprintf(sendRecvBuffer, SEND_RECEIVE_BUFFER, API_CHAT_COMPLETION, api_key, actual_body_size, api_body_buffer);
