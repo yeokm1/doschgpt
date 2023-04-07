@@ -124,6 +124,11 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 ```
 
 # Changelog
+* v0.6 (8 Apr 2023):
+* * Added new feature to send the previous request and ChatGPT reply to give the model more context in answering the latest request.
+* * * Previous request and ChatGPT reply has to be cached
+* * * API_BODY_SIZE_BUFFER increased to 15000 bytes
+* * Corrected bug in incorrect printing of uint16_t outgoing port value in debug mode
 * v0.5 (5 Apr 2023):
 * * Corrected bug where the size of bytes to read from MTCP is always the same even though buffer already has some bytes inside from previous read.
 * v0.4 (1 Apr 2023):
