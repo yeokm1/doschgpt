@@ -243,6 +243,15 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
 
 bool network_get_completion(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output){
     
+    static char * previousMessage = NULL;
+    static char * previousGPTReply = NULL;
+
+    int messageLength = strlen(message);
+
+    // Copy the current message and store it
+    char * tempMessage = (char*) calloc(messageLength + 1, sizeof(char));
+    memcpy(tempMessage, message, messageLength);
+
     memset(api_body_buffer, 0, API_BODY_SIZE_BUFFER);
     int actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY, model, message, temperature);
 
@@ -338,6 +347,27 @@ bool network_get_completion(char * hostname, int port, char * api_key, char * mo
     // if(output->error == 1){
     //     puts(recvBuffer);
     // }
+
+    if(output->error == COMPLETION_OUTPUT_ERROR_OK){
+        //All is good, we keep the messages
+
+        if(previousMessage != NULL){
+            free(previousMessage);
+            previousMessage = NULL;
+        }
+
+        if(previousGPTReply != NULL){
+            free(previousGPTReply);
+            previousGPTReply = NULL;
+        }
+
+        previousMessage = tempMessage;
+
+        previousGPTReply = (char *) calloc(output->contentLength + 1, sizeof(char));
+        memcpy(previousGPTReply, output->content, output->contentLength);
+    } else {
+        free(tempMessage);
+    }
     
     return status;
 }
