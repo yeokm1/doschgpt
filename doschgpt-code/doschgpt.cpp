@@ -253,7 +253,7 @@ int main(int argc, char * argv[]){
           printf("\n");
 
           if(debug_showRequestInfo){
-            printf("Outgoing port %d, %d prompt tokens, %d completion tokens\n", output.outPort, output.prompt_tokens, output.completion_tokens);
+            printf("Outgoing port %u, %d prompt tokens, %d completion tokens\n", output.outPort, output.prompt_tokens, output.completion_tokens);
           }
           
         } else if(output.error == COMPLETION_OUTPUT_ERROR_CHATGPT){
