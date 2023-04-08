@@ -24,14 +24,14 @@
 
 #define TIME_TO_WAIT_AFTER_LAST_FRAME 200
 
-char * api_body_buffer = NULL;
-char * sendRecvBuffer = NULL;
+char __far * api_body_buffer = NULL;
+char __far * sendRecvBuffer = NULL;
 
-char * previousMessage = NULL;
+char __far * previousMessage = NULL;
 int sizeOfPreviousMessage = 0;
-char * previousGPTReply = NULL;
+char __far * previousGPTReply = NULL;
 int sizeOfPreviousGPTReply = 0;
-char * previousTempMessage = NULL;
+char __far * previousTempMessage = NULL;
 
 //Network configuration obtained from network_init()
 uint16_t startingPort;

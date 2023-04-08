@@ -30,10 +30,10 @@ bool debug_showRawReply = false;
 
 // Message Request
 #define SIZE_MSG_TO_SEND 4096
-char * messageToSendToNet;
+char __far * messageToSendToNet;
 
 #define SIZE_MESSAGE_IN_BUFFER 2048
-char * messageInBuffer;
+char __far * messageInBuffer;
 
 volatile bool inProgress = true;
 
