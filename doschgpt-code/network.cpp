@@ -18,11 +18,20 @@
 
 #define API_BODY_SIZE_BUFFER 15000
 #define SEND_RECEIVE_BUFFER 16384
+#define PREVIOUS_MESSAGE_SIZE 5000
+#define PREVIOUS_GPT_REPLY_SIZE 8000
+
 
 #define TIME_TO_WAIT_AFTER_LAST_FRAME 200
 
 char * api_body_buffer = NULL;
 char * sendRecvBuffer = NULL;
+
+char * previousMessage = NULL;
+int sizeOfPreviousMessage = 0;
+char * previousGPTReply = NULL;
+int sizeOfPreviousGPTReply = 0;
+char * previousTempMessage = NULL;
 
 //Network configuration obtained from network_init()
 uint16_t startingPort;
@@ -76,10 +85,34 @@ bool network_init(uint16_t startPort, uint16_t endPort, EndCallback endCall, uin
 
     if(api_body_buffer == NULL){
         printf("Cannot allocate memory for API Body Buffer\n");
-        
-        // Free previous buffer
-        free(sendRecvBuffer);
 
+        network_stop();
+
+        return false;
+    }
+
+    previousMessage = (char *) calloc(PREVIOUS_MESSAGE_SIZE, sizeof(char));
+    if(previousMessage == NULL){
+        printf("Cannot allocate memory for Previous Message Buffer\n");
+        
+        network_stop();
+
+        return false;
+    }
+
+    previousGPTReply = (char *) calloc(PREVIOUS_GPT_REPLY_SIZE, sizeof(char));
+    if(previousGPTReply == NULL){
+        printf("Cannot allocate memory for Previous GPT Reply Buffer\n");
+        
+        network_stop();
+
+        return false;
+    }
+
+    previousTempMessage = (char *) calloc(PREVIOUS_MESSAGE_SIZE, sizeof(char));
+    if(previousTempMessage == NULL){
+        printf("Cannot allocate memory for Temp Message Buffer\n");
+        
         network_stop();
 
         return false;
@@ -105,6 +138,21 @@ void network_stop(){
     if(api_body_buffer != NULL){
         free(api_body_buffer);
         api_body_buffer = NULL;
+    }
+
+    if(previousMessage != NULL){
+        free(previousMessage);
+        previousMessage = NULL;
+    }
+
+    if(previousGPTReply != NULL){
+        free(previousGPTReply);
+        previousGPTReply = NULL;
+    }
+
+    if(previousTempMessage != NULL){
+        free(previousTempMessage);
+        previousTempMessage = NULL;
     }
 
     network_closeCurrentSocket();
@@ -244,20 +292,16 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
 
 bool network_get_completion(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output){
     
-    static char * previousMessage = NULL;
-    static char * previousGPTReply = NULL;
-
     int messageLength = strlen(message);
 
-    // Copy the current message and store it
-    char * tempMessage = (char*) calloc(messageLength + 1, sizeof(char));
-    memcpy(tempMessage, message, messageLength);
+    memset(previousTempMessage, 0, PREVIOUS_MESSAGE_SIZE);
+    memcpy(previousTempMessage, message, messageLength < PREVIOUS_MESSAGE_SIZE ? messageLength : PREVIOUS_MESSAGE_SIZE);
 
     int actual_body_size = 0;
 
     memset(api_body_buffer, 0, API_BODY_SIZE_BUFFER);
 
-    if(previousMessage != NULL && previousGPTReply != NULL){
+    if(strlen(previousMessage) > 0 && strlen(previousGPTReply) > 0){
         actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY_SUBSEQUENT, model, previousMessage, previousGPTReply, message, temperature);
     } else {
         actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY_INITIAL, model, message, temperature);
@@ -352,30 +396,19 @@ bool network_get_completion(char * hostname, int port, char * api_key, char * mo
         output->contentLength = strlen(output->content);
     }
 
-    // if(output->error == 1){
-    //     puts(recvBuffer);
-    // }
-
     if(output->error == COMPLETION_OUTPUT_ERROR_OK){
         //All is good, we keep the messages
 
-        if(previousMessage != NULL){
-            free(previousMessage);
-            previousMessage = NULL;
-        }
+        memset(previousMessage, 0, PREVIOUS_MESSAGE_SIZE);
+        memset(previousGPTReply, 0, PREVIOUS_GPT_REPLY_SIZE);
 
-        if(previousGPTReply != NULL){
-            free(previousGPTReply);
-            previousGPTReply = NULL;
-        }
-
-        previousMessage = tempMessage;
-
-        previousGPTReply = (char *) calloc(output->contentLength + 1, sizeof(char));
-        memcpy(previousGPTReply, output->content, output->contentLength);
-    } else {
-        free(tempMessage);
+        memcpy(previousMessage, message, messageLength < PREVIOUS_MESSAGE_SIZE ? messageLength : PREVIOUS_MESSAGE_SIZE);
+        memcpy(previousGPTReply, output->content, output->contentLength < PREVIOUS_GPT_REPLY_SIZE ? output->contentLength : PREVIOUS_GPT_REPLY_SIZE);
     }
+
+    // if(output->error == 1){
+    //     puts(recvBuffer);
+    // }
     
     return status;
 }

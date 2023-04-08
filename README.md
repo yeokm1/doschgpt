@@ -124,6 +124,9 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 ```
 
 # Changelog
+* v0.7 (8 Apr 2023):
+* * Corrected bug in previous release where previous message/reply memory is not freed after program ends.
+* * Now will use one-time malloc allocations of previous message (5000), temp message (5000), GPT reply (8000) buffers to avoid memory fragmentation.
 * v0.6 (8 Apr 2023):
 * * Added new feature to send the previous request and ChatGPT reply to give the model more context in answering the latest request.
 * * * Previous request and ChatGPT reply has to be cached
