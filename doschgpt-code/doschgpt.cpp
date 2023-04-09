@@ -4,9 +4,9 @@
 #include <string.h>
 
 #include "network.h"
-#include "utfcp437.h"
+#include "utf2cp.h"
 
-#define VERSION "0.7"
+#define VERSION "0.8"
 
 // User configuration
 #define CONFIG_FILENAME "doschgpt.ini"
@@ -27,6 +27,8 @@ uint16_t config_socketResponseTimeout;
 // Command Line Configuration
 bool debug_showRequestInfo = false;
 bool debug_showRawReply = false;
+
+bool cp737_active = false;
 
 // Message Request
 #define SIZE_MSG_TO_SEND 4096
@@ -137,6 +139,8 @@ int main(int argc, char * argv[]){
       debug_showRequestInfo = true;
     } else if(strstr(arg, "-drr")){
       debug_showRawReply = true;
+    } else if(strstr(arg, "-cp737")){
+      cp737_active = true;
     }
   }
 
@@ -155,6 +159,7 @@ int main(int argc, char * argv[]){
 
     printf("\nDebug request info -dri: %d\n", debug_showRequestInfo);
     printf("Debug raw reply -drr: %d\n", debug_showRawReply);
+    printf("Enable Greek CP737 -cp737: %d\n", cp737_active);
 
   } else {
     printf("\nCannot open %s config file containing:\nAPI key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", CONFIG_FILENAME);
@@ -239,7 +244,14 @@ int main(int argc, char * argv[]){
               printf("\\");
               i++;
             } else {
-              CONVERSION_OUTPUT conversionResult = utf_to_cp437(currentChar, nextChar, followingChar);
+
+              CONVERSION_OUTPUT conversionResult;
+              if(cp737_active){
+                conversionResult = utf_to_cp(CODE_PAGE_737, currentChar, nextChar, followingChar);
+              } else {
+                conversionResult = utf_to_cp(CODE_PAGE_437, currentChar, nextChar, followingChar);
+              }
+              
               unsigned char characterToPrint = conversionResult.character;
               int numCharactersToAdvance = conversionResult.charactersUsed - 1;
 

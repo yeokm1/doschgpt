@@ -124,6 +124,9 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 ```
 
 # Changelog
+* v0.8 (9 Apr 2023):
+* * Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_437) via `-cp737` command line argument.
+* * Corrected small bug in Code Page 437 parsing UTF-8 characters starting with 0xE2 that does not return designated unknown character if unknown character is encountered.
 * v0.7 (8 Apr 2023):
 * * Corrected bug in previous release where previous message/reply memory is not freed after program ends.
 * * Now will use one-time malloc allocations of previous message (5000), temp message (5000), GPT reply (8000) buffers to avoid memory fragmentation.

@@ -1,48 +1,5 @@
 #include "utfcp437.h"
-
-CONVERSION_OUTPUT utf_to_cp437(int value0, int value1, int value2){
-    CONVERSION_OUTPUT output;
-
-    if(value0 <= 127){
-        output.character = value0;
-        output.charactersUsed = 1;
-        return output;
-    }
-
-    switch(value0){
-        case 0xC2:
-            output.character = utf_to_cp437_c2(value1);
-            output.charactersUsed = 2;
-            break;
-        case 0xC3:
-            output.character = utf_to_cp437_c3(value1);
-            output.charactersUsed = 2;
-            break;
-        case 0xC6:
-            output.character = utf_to_cp437_c6(value1);
-            output.charactersUsed = 2;
-            break;
-        case 0xCE:
-            output.character = utf_to_cp437_ce(value1);
-            output.charactersUsed = 2;
-            break;
-        case 0xCF:
-            output.character = utf_to_cp437_cf(value1);
-            output.charactersUsed = 2;
-            break;
-        case 0xE2:
-            output.character = utf_to_cp437_e2(value1, value2);
-            output.charactersUsed = 3;
-            break;
-        default:
-            output.character = UNKNOWN_CHAR_REPLACEMENT;
-            output.charactersUsed = 1;
-    }
-
-    return output;
-
-}
-
+#define UNKNOWN_CHAR_REPLACEMENT 0xFE
 
 unsigned char utf_to_cp437_c3(int value1){
     switch(value1){
@@ -208,7 +165,7 @@ unsigned char utf_to_cp437_e2(int value1, int value2){
         }
     }
 
-    return value1;
+    return UNKNOWN_CHAR_REPLACEMENT;
 }
 
 unsigned char utf_to_cp437_ce(int value1){
