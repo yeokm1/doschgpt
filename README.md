@@ -38,10 +38,11 @@ Application binary can be found in the `releases` directory or Github Releases s
 * MTCP Config Environment variable `MTCPCFG`
 * MTCP Config file configured by DHCP
 
-5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following arguments for debug use
+5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following command line arguments.
 
 * `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request
 * `-drr`: Display the raw server return headers and json reply
+* `-cp737`: Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_737). Ensure code page is loaded before starting the program.
 
 <img src="images\doschgpt-5155-front-start.jpg" width="500">
 
