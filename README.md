@@ -42,6 +42,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 * `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request
 * `-drr`: Display the raw server return headers and json reply
+* `-drt`: Display the timestamp of the latest request/reply
 * `-cp737`: Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_737). Ensure code page is loaded before starting the program.
 * `-fhistory.txt`: Append conversation history to new/existing text file. File will also include debug messages if specified. Replace `history.txt` with any other filepath you desire. There is no space between the `-f` and the filepath.
 
