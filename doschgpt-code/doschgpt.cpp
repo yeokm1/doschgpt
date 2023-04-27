@@ -14,7 +14,7 @@
 #define API_KEY_LENGTH_MAX 200
 #define MODEL_LENGTH_MAX 50
 #define PROXY_HOST_MAX 100
-#define CONV_HISTORY_PATH 256
+#define CONV_HISTORY_PATH_SIZE 256
 
 char config_apikey[API_KEY_LENGTH_MAX];
 char config_model[MODEL_LENGTH_MAX];
@@ -32,7 +32,7 @@ bool debug_showRawReply = false;
 bool debug_showTimeStamp = false;
 int codePageInUse = CODE_PAGE_437;
 bool convHistoryGiven = false;
-char convHistoryPath[CONV_HISTORY_PATH];
+char convHistoryPath[CONV_HISTORY_PATH_SIZE];
 
 // Message Request
 #define SIZE_MSG_TO_SEND 4096
@@ -151,6 +151,10 @@ int main(int argc, char * argv[]){
     } else if(strstr(arg, "-f") && strlen(arg) != 2){
       convHistoryGiven = true;
 
+      if((strlen(arg) - 2) > (CONV_HISTORY_PATH_SIZE - 1)){
+        printf("File Path argument exceeded %d characters\n", CONV_HISTORY_PATH_SIZE);
+        return -3;
+      }
       //Copy after -f
       memcpy(convHistoryPath, arg + 2, strlen(arg) - 2);
     }
