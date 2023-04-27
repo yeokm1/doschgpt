@@ -126,7 +126,7 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 ```
 
 # Changelog
-* v0.9 (2023):
+* v0.9 (27 Apr 2023):
 * * (New feature) Ability to append conversation history and debug messages to text file
 * * (New feature) Display timestamp as a debug option
 * * Remove FAR pointers
