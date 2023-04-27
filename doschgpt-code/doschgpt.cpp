@@ -5,14 +5,16 @@
 
 #include "network.h"
 #include "utf2cp.h"
+#include "textio.h"
 
-#define VERSION "0.8"
+#define VERSION "0.9"
 
 // User configuration
 #define CONFIG_FILENAME "doschgpt.ini"
 #define API_KEY_LENGTH_MAX 200
 #define MODEL_LENGTH_MAX 50
 #define PROXY_HOST_MAX 100
+#define CONV_HISTORY_PATH 256
 
 char config_apikey[API_KEY_LENGTH_MAX];
 char config_model[MODEL_LENGTH_MAX];
@@ -27,24 +29,27 @@ uint16_t config_socketResponseTimeout;
 // Command Line Configuration
 bool debug_showRequestInfo = false;
 bool debug_showRawReply = false;
-
-bool cp737_active = false;
+bool debug_showTimeStamp = false;
+int codePageInUse = CODE_PAGE_437;
+bool convHistoryGiven = false;
+char convHistoryPath[CONV_HISTORY_PATH];
 
 // Message Request
 #define SIZE_MSG_TO_SEND 4096
-char __far * messageToSendToNet;
+char * messageToSendToNet;
 
-#define SIZE_MESSAGE_IN_BUFFER 2048
-char __far * messageInBuffer;
+#define SIZE_MESSAGE_IN_BUFFER 1600
+char * messageInBuffer;
 
 volatile bool inProgress = true;
-
 
 // Called when ending the app
 void endFunction(){
   free(messageToSendToNet);
   free(messageInBuffer);
   network_stop();
+
+  io_close_history_file();
 
   printf("Ended DOS ChatGPT client\n");
 }
@@ -135,18 +140,24 @@ int main(int argc, char * argv[]){
   // Process command line arguments -dri and -drr
   for(int i = 0; i < argc; i++){
     char * arg = argv[i];
-    if(strstr(arg, "-dri")){
+    if(strstr(arg, "-dri") && strlen(arg) == 4){
       debug_showRequestInfo = true;
-    } else if(strstr(arg, "-drr")){
+    } else if(strstr(arg, "-drr") && strlen(arg) == 4){
       debug_showRawReply = true;
-    } else if(strstr(arg, "-cp737")){
-      cp737_active = true;
+    } else if(strstr(arg, "-drt") && strlen(arg) == 4){
+      debug_showTimeStamp = true;
+    } else if(strstr(arg, "-cp737") && strlen(arg) == 6){
+      codePageInUse = CODE_PAGE_737;
+    } else if(strstr(arg, "-f") && strlen(arg) != 2){
+      convHistoryGiven = true;
+
+      //Copy after -f
+      memcpy(convHistoryPath, arg + 2, strlen(arg) - 2);
     }
   }
 
   if(openAndProcessConfigFile(CONFIG_FILENAME)){
 
-    printf("Client config details read from file:\n");
     printf("API key contains %d characters\n", strlen(config_apikey));
     printf("Model: %s\n", config_model);
     printf("Request temperature: %0.1f\n", config_req_temperature);
@@ -156,10 +167,17 @@ int main(int argc, char * argv[]){
     printf("Outgoing end port: %u\n", config_outgoing_end_port);
     printf("Socket connect timeout: %u ms\n", config_socketConnectTimeout);
     printf("Socket response timeout: %u ms\n", config_socketResponseTimeout);
+    printf("\n");
+    printf("Show request info -dri: %d\n", debug_showRequestInfo);
+    printf("Show raw reply -drr: %d\n", debug_showRawReply);
+    printf("Show timestamps -drt: %d\n", debug_showTimeStamp);
+    printf("Code page -cpXXX: %d\n", codePageInUse);
 
-    printf("\nDebug request info -dri: %d\n", debug_showRequestInfo);
-    printf("Debug raw reply -drr: %d\n", debug_showRawReply);
-    printf("Enable Greek CP737 -cp737: %d\n", cp737_active);
+    if(convHistoryGiven){
+      printf("Conversation history path -fX: %s\n", convHistoryPath);
+    } else {
+      printf("Conversation history path -fX: Not specified\n");
+    }
 
   } else {
     printf("\nCannot open %s config file containing:\nAPI key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", CONFIG_FILENAME);
@@ -173,6 +191,12 @@ int main(int argc, char * argv[]){
   } else {
     printf("Cannot init network\n");
     return -1;
+  }
+
+  if(convHistoryGiven && !io_open_history_file(convHistoryPath)){
+    printf("Cannot open history file to append\n");
+    endFunction();
+    return -2;
   }
 
   messageToSendToNet = (char *) calloc (SIZE_MSG_TO_SEND, sizeof(char));
@@ -191,7 +215,8 @@ int main(int argc, char * argv[]){
   }
 
   printf("\nStart talking to ChatGPT. Press ESC to quit.\n");
-  printf("Me:\n");
+
+  io_str_newline("Me:");
 
   int currentMessagePos = 0;
 
@@ -215,15 +240,21 @@ int main(int argc, char * argv[]){
           continue;
         }
 
-        printf("\n");
+        io_write_str_no_print(messageInBuffer, currentMessagePos);
+
+        io_char('\n');
+        if(debug_showTimeStamp){
+          io_timestamp();
+        }
 
         escapeThisString(messageInBuffer, currentMessagePos, messageToSendToNet, SIZE_MSG_TO_SEND);
+
         COMPLETION_OUTPUT output;
         memset((void*) &output, 0, sizeof(COMPLETION_OUTPUT));
         network_get_completion(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
 
         if(output.error == COMPLETION_OUTPUT_ERROR_OK){
-          printf("\nChatGPT:\n");
+          io_str_newline("\nChatGPT:");
 
           //To scan for the special format to convert to formatted text
           for(int i = 0; i < output.contentLength; i++){
@@ -233,53 +264,53 @@ int main(int argc, char * argv[]){
             
             //Given \n print the newline then advance 2 steps
             if(currentChar == '\\' && nextChar == 'n'){
-              printf("\n");
+              io_char('\n');
               i++;
             // Given " print the " then advance 2 steps
             } else if(currentChar == '\\' && nextChar == '\"'){
-              printf("\"");
+              io_char('\"');
               i++;
             // Given \ print the \ then advance 2 steps
             } else if(currentChar == '\\' && nextChar == '\\'){
-              printf("\\");
+              io_char('\\');
               i++;
             } else {
 
               CONVERSION_OUTPUT conversionResult;
-              if(cp737_active){
-                conversionResult = utf_to_cp(CODE_PAGE_737, currentChar, nextChar, followingChar);
-              } else {
-                conversionResult = utf_to_cp(CODE_PAGE_437, currentChar, nextChar, followingChar);
-              }
-              
+              conversionResult = utf_to_cp(codePageInUse, currentChar, nextChar, followingChar);
+
               unsigned char characterToPrint = conversionResult.character;
               int numCharactersToAdvance = conversionResult.charactersUsed - 1;
 
-              printf("%c", characterToPrint);
+              io_char(characterToPrint);
               i += numCharactersToAdvance;
 
             }
           }
           
-
-          printf("\n");
+          io_char('\n');
 
           if(debug_showRequestInfo){
-            printf("Outgoing port %u, %d prompt tokens, %d completion tokens\n", output.outPort, output.prompt_tokens, output.completion_tokens);
+            io_request_info(output.outPort, output.prompt_tokens, output.completion_tokens);
           }
           
         } else if(output.error == COMPLETION_OUTPUT_ERROR_CHATGPT){
-          printf("\nChatGPT Error:\n%.*s\n", output.contentLength, output.content);
+          io_char('\n');
+          io_chatgpt_error(output.content, output.contentLength);
         } else {
-          printf("\nApp Error:\n%.*s\n", output.contentLength, output.content);
+          io_char('\n');
+          io_app_error(output.content, output.contentLength);
         }
 
         if(debug_showRawReply){
-          printf("%s\n", output.rawData);
+          io_str_newline(output.rawData);
         }
-        
 
-        printf("\nMe:\n");
+        if(debug_showTimeStamp){
+          io_timestamp();
+        }
+
+        io_str_newline("\nMe:");
 
         memset(messageInBuffer, 0, SIZE_MESSAGE_IN_BUFFER);
         currentMessagePos = 0;

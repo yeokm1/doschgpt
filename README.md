@@ -43,6 +43,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 * `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request
 * `-drr`: Display the raw server return headers and json reply
 * `-cp737`: Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_737). Ensure code page is loaded before starting the program.
+* `-fhistory.txt`: Append conversation history to new/existing text file. File will also include debug messages if specified. Replace `history.txt` with any other filepath you desire. There is no space between the `-f` and the filepath.
 
 <img src="images\doschgpt-5155-front-start.jpg" width="500">
 
@@ -125,6 +126,13 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 ```
 
 # Changelog
+* v0.9 (2023):
+* * (New feature) Ability to append conversation history and debug messages to text file
+* * (New feature) Display timestamp as a debug option
+* * Remove FAR pointers
+* * Reduced user entry buffer to 1600 bytes
+* * Reduced API body buffer to 12000 bytes
+* * Reduced SEND_RECEIVE buffer to 14000 bytes
 * v0.8 (9 Apr 2023):
 * * Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_437) via `-cp737` command line argument.
 * * Corrected small bug in Code Page 437 parsing UTF-8 characters starting with 0xE2 that does not return designated unknown character if unknown character is encountered.

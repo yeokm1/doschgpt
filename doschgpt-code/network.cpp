@@ -16,22 +16,22 @@
 #define API_BODY_INITIAL "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
 #define API_BODY_SUBSEQUENT "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}, {\"role\": \"assistant\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
 
-#define API_BODY_SIZE_BUFFER 15000
-#define SEND_RECEIVE_BUFFER 16384
+#define API_BODY_SIZE_BUFFER 12000
+#define SEND_RECEIVE_BUFFER 14000
 #define PREVIOUS_MESSAGE_SIZE 5000
 #define PREVIOUS_GPT_REPLY_SIZE 8000
 
 
 #define TIME_TO_WAIT_AFTER_LAST_FRAME 200
 
-char __far * api_body_buffer = NULL;
-char __far * sendRecvBuffer = NULL;
+char * api_body_buffer = NULL;
+char * sendRecvBuffer = NULL;
 
-char __far * previousMessage = NULL;
+char * previousMessage = NULL;
 int sizeOfPreviousMessage = 0;
-char __far * previousGPTReply = NULL;
+char * previousGPTReply = NULL;
 int sizeOfPreviousGPTReply = 0;
-char __far * previousTempMessage = NULL;
+char * previousTempMessage = NULL;
 
 //Network configuration obtained from network_init()
 uint16_t startingPort;
