@@ -184,8 +184,6 @@ int main(int argc, char * argv[]){
 
   if(configFileOpenStatus){
 
-    printf("Config Path -cX: %s\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
-
     printf("API key contains %d characters\n", strlen(config_apikey));
     printf("Model: %s\n", config_model);
     printf("Request temperature: %0.1f\n", config_req_temperature);
@@ -200,6 +198,8 @@ int main(int argc, char * argv[]){
     printf("Show raw reply -drr: %d\n", debug_showRawReply);
     printf("Show timestamps -drt: %d\n", debug_showTimeStamp);
     printf("Code page -cpXXX: %d\n", codePageInUse);
+    printf("Config Path -cX: %s\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
+
 
     if(convHistoryGiven){
       printf("Conversation history path -fX: %s\n", convHistoryPath);
