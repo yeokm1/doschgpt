@@ -138,6 +138,7 @@ curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completi
 
 # Hugging Face API
 curl https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill -X POST -H "Authorization: Bearer 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" -d '{"inputs": {"text":"What is retro-computing?"}, "parameters": { "temperature": 1.0 } }'
+
 # Hugging Face API with history
 curl https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill -X POST -H "Authorization: Bearer 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" -d '{"inputs": {"past_user_inputs": ["What is retrocomputing?"], "generated_responses": ["A retro computer is a type of computer that was invented in the 1950s."], "text": "I want one", "parameters": { "temperature": 1.0 } }'
 ```
