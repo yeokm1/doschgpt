@@ -42,8 +42,8 @@ void io_app_error(char * str, int length){
     }
 }
 
-void io_chatgpt_error(char * str, int length){
-    #define GPT_ERROR_FORMAT "ChatGPT Error:\n%.*s\n"
+void io_server_error(char * str, int length){
+    #define GPT_ERROR_FORMAT "Server Error:\n%.*s\n"
     printf(GPT_ERROR_FORMAT, length, str);
 
     if(historyFile){

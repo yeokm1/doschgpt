@@ -1,6 +1,6 @@
 void io_timestamp();
 void io_app_error(char * str, int length);
-void io_chatgpt_error(char * str, int length);
+void io_server_error(char * str, int length);
 void io_str_newline(char * str);
 void io_str_len(char * str, int length);
 void io_write_str_no_print(char * str, int length);

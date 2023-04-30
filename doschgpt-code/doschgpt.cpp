@@ -7,12 +7,12 @@
 #include "utf2cp.h"
 #include "textio.h"
 
-#define VERSION "0.10"
+#define VERSION "0.11"
 
 // User configuration
 #define CONFIG_FILENAME_DEFAULT "doschgpt.ini"
 #define API_KEY_LENGTH_MAX 200
-#define MODEL_LENGTH_MAX 50
+#define MODEL_LENGTH_MAX 100
 #define PROXY_HOST_MAX 100
 #define CONV_HISTORY_PATH_SIZE 256
 #define CONFIG_PATH_SIZE 256
@@ -38,6 +38,8 @@ char convHistoryPath[CONV_HISTORY_PATH_SIZE];
 bool configPathGiven = false;
 char configPath[CONFIG_PATH_SIZE];
 
+bool huggingFace = false;
+
 // Message Request
 #define SIZE_MSG_TO_SEND 4096
 char * messageToSendToNet;
@@ -55,7 +57,7 @@ void endFunction(){
 
   io_close_history_file();
 
-  printf("Ended DOS ChatGPT client\n");
+  printf("Ended DOS ChatGPT/Hugging Face client\n");
 }
 
 // When network received a Break
@@ -138,7 +140,7 @@ void escapeThisString(char * source, int sourceSize, char * dest, int destMaxSiz
 }
 
 int main(int argc, char * argv[]){
-  printf("Started DOS ChatGPT client %s by Yeo Kheng Meng\n", VERSION);
+  printf("Started DOS ChatGPT/Hugging Face client %s by Yeo Kheng Meng\n", VERSION);
   printf("Compiled on %s %s\n\n", __DATE__, __TIME__);
 
   // Process command line arguments -dri and -drr
@@ -171,6 +173,8 @@ int main(int argc, char * argv[]){
 
       //Copy after -c
       memcpy(configPath, arg + 2, strlen(arg) - 2);
+    } else if(strstr(arg, "-hf") && strlen(arg) == 3){
+      huggingFace = true;
     }
   }
 
@@ -184,7 +188,7 @@ int main(int argc, char * argv[]){
 
   if(configFileOpenStatus){
 
-    printf("API key contains %d characters\n", strlen(config_apikey));
+    printf("API/token key contains %d characters\n", strlen(config_apikey));
     printf("Model: %s\n", config_model);
     printf("Request temperature: %0.1f\n", config_req_temperature);
     printf("Proxy hostname: %s\n", config_proxy_hostname);
@@ -200,7 +204,6 @@ int main(int argc, char * argv[]){
     printf("Code page -cpXXX: %d\n", codePageInUse);
     printf("Config Path -cX: %s\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
 
-
     if(convHistoryGiven){
       printf("Conversation history path -fX: %s\n", convHistoryPath);
     } else {
@@ -208,7 +211,7 @@ int main(int argc, char * argv[]){
     }
 
   } else {
-    printf("Cannot open %s config file containing:\nAPI key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
+    printf("Cannot open %s config file containing:\nAPI/Token key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
     return -2;
   }
 
@@ -242,7 +245,12 @@ int main(int argc, char * argv[]){
     return -1;
   }
 
-  printf("\nStart talking to ChatGPT. Press ESC to quit.\n");
+  if(huggingFace){
+    printf("\nUsing Hugging Face (%s). Press ESC to quit.\n", config_model);
+  } else {
+    printf("\nUsing ChatGPT (%s). Press ESC to quit.\n", config_model);
+  }
+
 
   io_str_newline("Me:");
 
@@ -279,10 +287,21 @@ int main(int argc, char * argv[]){
 
         COMPLETION_OUTPUT output;
         memset((void*) &output, 0, sizeof(COMPLETION_OUTPUT));
-        network_get_completion(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
+
+        if(huggingFace){
+          network_get_huggingface_conversation(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
+        } else {
+          network_get_chatgpt_completion(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
+        }
+
 
         if(output.error == COMPLETION_OUTPUT_ERROR_OK){
-          io_str_newline("\nChatGPT:");
+
+          if(huggingFace){
+            io_str_newline("\nHugging Face:");
+          } else {
+            io_str_newline("\nChatGPT:");
+          }
 
           //To scan for the special format to convert to formatted text
           for(int i = 0; i < output.contentLength; i++){
@@ -324,7 +343,7 @@ int main(int argc, char * argv[]){
           
         } else if(output.error == COMPLETION_OUTPUT_ERROR_CHATGPT){
           io_char('\n');
-          io_chatgpt_error(output.content, output.contentLength);
+          io_server_error(output.content, output.contentLength);
         } else {
           io_char('\n');
           io_app_error(output.content, output.contentLength);

@@ -70,4 +70,6 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
 // message: Message request to send (See OpenAL dev page)
 // temperature: randomness of reply (See OpenAL dev page)
 // output: struct containing parsed json output
-bool network_get_completion(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output);
+bool network_get_chatgpt_completion(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output);
+
+bool network_get_huggingface_conversation(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output);

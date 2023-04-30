@@ -12,9 +12,13 @@
 #include "tcpsockm.h"
 #include "timer.h"
 
-#define API_CHAT_COMPLETION "POST /v1/chat/completions HTTP/1.1\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nHost: api.openai.com\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
-#define API_BODY_INITIAL "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
-#define API_BODY_SUBSEQUENT "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}, {\"role\": \"assistant\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
+#define CHATGPT_API_CHAT_COMPLETION "POST /v1/chat/completions HTTP/1.1\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nHost: api.openai.com\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
+#define CHATGPT_API_BODY_INITIAL "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
+#define CHATGPT_API_BODY_SUBSEQUENT "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}, {\"role\": \"assistant\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
+
+#define HF_API_CHAT_COMPLETION "POST /models/%s HTTP/1.1\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nHost: api-inference.huggingface.co\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
+#define HF_API_BODY_INITIAL "{\"inputs\": {\"text\":\"%s\" }, \"parameters\": { \"temperature\": %0.1f } }"
+#define HF_API_BODY_SUBSEQUENT "{\"inputs\": {\"past_user_inputs\": [\"%s\"], \"generated_responses\": [\"%s\"], \"text\":\"%s\" }, \"parameters\": { \"temperature\": %0.1f } }"
 
 #define API_BODY_SIZE_BUFFER 12000
 #define SEND_RECEIVE_BUFFER 14000
@@ -290,7 +294,7 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
     return status;
 }
 
-bool network_get_completion(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output){
+bool network_get_chatgpt_completion(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output){
     
     int messageLength = strlen(message);
 
@@ -302,14 +306,14 @@ bool network_get_completion(char * hostname, int port, char * api_key, char * mo
     memset(api_body_buffer, 0, API_BODY_SIZE_BUFFER);
 
     if(strlen(previousMessage) > 0 && strlen(previousGPTReply) > 0){
-        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY_SUBSEQUENT, model, previousMessage, previousGPTReply, message, temperature);
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, CHATGPT_API_BODY_SUBSEQUENT, model, previousMessage, previousGPTReply, message, temperature);
     } else {
-        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, API_BODY_INITIAL, model, message, temperature);
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, CHATGPT_API_BODY_INITIAL, model, message, temperature);
     }
 
     memset(sendRecvBuffer, 0, SEND_RECEIVE_BUFFER);
-    snprintf(sendRecvBuffer, SEND_RECEIVE_BUFFER, API_CHAT_COMPLETION, api_key, actual_body_size, api_body_buffer);
-    //puts(requestBuffer);
+    snprintf(sendRecvBuffer, SEND_RECEIVE_BUFFER, CHATGPT_API_CHAT_COMPLETION, api_key, actual_body_size, api_body_buffer);
+    //puts(sendRecvBuffer);
 
     int actualRequestBufferLength = strlen(sendRecvBuffer);
     bool status = network_send_receive(hostname, port, sendRecvBuffer, actualRequestBufferLength, sendRecvBuffer, SEND_RECEIVE_BUFFER, &output->outPort);
@@ -318,7 +322,7 @@ bool network_get_completion(char * hostname, int port, char * api_key, char * mo
     output->rawData = sendRecvBuffer;
 
     if(status){
-        //puts(recvBuffer);
+        //puts(sendRecvBuffer);
 
         //Find if contains error
         char * errorPtr = strstr(sendRecvBuffer, "\"error\": {");
@@ -387,6 +391,106 @@ bool network_get_completion(char * hostname, int port, char * api_key, char * mo
             } else {
                 output->error = COMPLETION_OUTPUT_ERROR_APP;
                 output->content = "Cannot find content";
+                output->contentLength = strlen(output->content);
+            }
+        }
+    } else {
+        output->error = COMPLETION_OUTPUT_ERROR_APP;
+        output->content = "Cannot connect to socket or response timeout";
+        output->contentLength = strlen(output->content);
+    }
+
+    if(output->error == COMPLETION_OUTPUT_ERROR_OK){
+        //All is good, we keep the messages
+
+        memset(previousMessage, 0, PREVIOUS_MESSAGE_SIZE);
+        memset(previousGPTReply, 0, PREVIOUS_GPT_REPLY_SIZE);
+
+        memcpy(previousMessage, message, messageLength < PREVIOUS_MESSAGE_SIZE ? messageLength : PREVIOUS_MESSAGE_SIZE);
+        memcpy(previousGPTReply, output->content, output->contentLength < PREVIOUS_GPT_REPLY_SIZE ? output->contentLength : PREVIOUS_GPT_REPLY_SIZE);
+    }
+
+    // if(output->error == 1){
+    //     puts(puts(sendRecvBuffer););
+    // }
+    
+    return status;
+}
+
+bool network_get_huggingface_conversation(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output){
+    
+    int messageLength = strlen(message);
+
+    memset(previousTempMessage, 0, PREVIOUS_MESSAGE_SIZE);
+    memcpy(previousTempMessage, message, messageLength < PREVIOUS_MESSAGE_SIZE ? messageLength : PREVIOUS_MESSAGE_SIZE);
+
+    int actual_body_size = 0;
+
+    memset(api_body_buffer, 0, API_BODY_SIZE_BUFFER);
+
+    if(strlen(previousMessage) > 0 && strlen(previousGPTReply) > 0){
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, HF_API_BODY_SUBSEQUENT, previousMessage, previousGPTReply, message, temperature);
+    } else {
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, HF_API_BODY_INITIAL, message, temperature);
+    }
+
+    memset(sendRecvBuffer, 0, SEND_RECEIVE_BUFFER);
+    snprintf(sendRecvBuffer, SEND_RECEIVE_BUFFER, HF_API_CHAT_COMPLETION, model, api_key, actual_body_size, api_body_buffer);
+    //puts(sendRecvBuffer);
+
+    int actualRequestBufferLength = strlen(sendRecvBuffer);
+    bool status = network_send_receive(hostname, port, sendRecvBuffer, actualRequestBufferLength, sendRecvBuffer, SEND_RECEIVE_BUFFER, &output->outPort);
+
+    output->error = COMPLETION_OUTPUT_ERROR_OK;
+    output->rawData = sendRecvBuffer;
+
+    if(status){
+        //puts(recvBuffer);
+
+        //Find if contains error
+        char * errorPtr = strstr(sendRecvBuffer, "\"error\":");
+
+        if(errorPtr){
+
+            //Advance to start of message
+            char * messageStartPointer = errorPtr + 9;
+
+            //Locate message termination
+            char * messageEndPointer = strstr(messageStartPointer, "\"}");
+
+            if(messageEndPointer != NULL){
+                int length = messageEndPointer - messageStartPointer;
+                output->error = COMPLETION_OUTPUT_ERROR_CHATGPT;
+                output->content = messageStartPointer;
+                output->contentLength = length;
+            } else {
+                output->error = COMPLETION_OUTPUT_ERROR_APP;
+                output->content = "Error but no error_message ending found";
+                output->contentLength = strlen(output->content);
+            }
+   
+
+        } else {
+            char * content_ptr = strstr(sendRecvBuffer, "\"generated_text\":");
+
+            if(content_ptr){
+                //Advance to start of generated_text
+                char * contentStartPointer = content_ptr + 18;
+
+                //Locate message termination
+                char * contentEndPointer = strstr(contentStartPointer, "\",");
+
+                if(contentEndPointer != NULL){
+                    output->content = contentStartPointer;
+                    output->contentLength = contentEndPointer - contentStartPointer;
+                } else {
+                    output->error = COMPLETION_OUTPUT_ERROR_APP;
+                    output->content = "Cannot find end of generated_text";
+                    output->contentLength = strlen(output->content);
+                }
+            } else {
+                output->error = COMPLETION_OUTPUT_ERROR_APP;
+                output->content = "Cannot find generated_text";
                 output->contentLength = strlen(output->content);
             }
         }
