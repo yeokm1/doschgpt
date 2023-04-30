@@ -25,7 +25,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 3. The application requires a config file. By default it will use the filename `doschgpt.ini` but you can specify another path with the `-c` argument. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
 
 * API key: Place your key without quotes (API key in this sample file has been revoked)
-* Model: Language model to use such as but not limited to. `gpt-3.5-turbo` for ChatGPT. `facebook/blenderbot-400M-distill` or `microsoft/DialoGPT-large` for Hugging Face.
+* Model: Language model to use such as but not limited to. `gpt-3.5-turbo` for ChatGPT. `facebook/blenderbot-400M-distill` or `microsoft/DialoGPT-large` for Hugging Face. More details and models for Hugging Face can be found [here](https://huggingface.co/tasks/conversational).
 * Request Temperature: How random the completion will be. More [OpenAI details](https://platform.openai.com/docs/guides/chat/instructing-chat-models) and [Hugging Face details](https://huggingface.co/docs/api-inference/detailed_parameters#conversational-task)
 * Proxy hostname: Hostname IP of the proxy
 * Proxy port: Proxy Port
