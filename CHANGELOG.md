@@ -1,4 +1,6 @@
 # Change Log
+* v0.11 (30 Apr 2023):
+* * Support for Hugging Face API
 * v0.10 (30 Apr 2023):
 * * Can customise path to configuration file
 * v0.9 (27 Apr 2023):

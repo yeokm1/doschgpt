@@ -1,6 +1,6 @@
 # doschgpt
 
-A proof-of-concept ChatGPT client for DOS. 
+A proof-of-concept ChatGPT and Hugging Face client for DOS. 
 
 <img src="images\doschgpt-front-combined.jpg" width="1000">
 
@@ -16,15 +16,15 @@ This program is heavily based on sample code in the DOS networking [MTCP library
 
 Application binary can be found in the `releases` directory or Github Releases section but do the following first.
 
-1. OpenAI requires an API key to use its APIs. Follow the [instructions on their website](https://platform.openai.com/account/api-keys) to obtain this key before proceeding.
+1. Both OpenAI and Hugging Face requires an API key to use its APIs. Follow the [instructions on tChatGPT website](https://platform.openai.com/account/api-keys) or [Hugging Face](https://huggingface.co/settings/tokens) to obtain this key before proceeding.
 
-2. Download and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases)
+2. Download and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases) on a modern machine/SBC.
 
-3. The application requires a config file named `doschgpt.ini`. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
+3. The application requires a config file. By default it will use the filename `doschgpt.ini` but you can specify another path with the `-c` argument. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
 
 * API key: Place your key without quotes (API key in this sample file has been revoked)
-* Model: Language model to use, can use `gpt-3.5-turbo`
-* Request Temperature: How random the completion will be. More [details](https://platform.openai.com/docs/guides/chat/instructing-chat-models)
+* Model: Language model to use, can use `gpt-3.5-turbo` for ChatGPT. Hugging Face can use `facebook/blenderbot-400M-distill` or `microsoft/DialoGPT-large`.
+* Request Temperature: How random the completion will be. More [OpenAI details](https://platform.openai.com/docs/guides/chat/instructing-chat-models) and [Hugging Face details](https://huggingface.co/docs/api-inference/detailed_parameters#conversational-task)
 * Proxy hostname: Hostname IP of the proxy
 * Proxy port: Proxy Port
 * Outgoing start port: Start of a range of randomly selected outgoing port
@@ -32,7 +32,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 * Socket connect timeout (ms): How long to wait when attempting to connect to proxy
 * Socket response timeout (ms): How long to wait for OpenAI's servers to reply
 
-4. Ensure that your DOS environment has loaded the following
+4. Ensure that your DOS environment has loaded the following:
 
 * Packet Driver
 * MTCP Config Environment variable `MTCPCFG`
@@ -40,12 +40,23 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following optional command line arguments.
 
-* `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request
+* `-hf`: To use Hugging Face
+* `-cdoschgpt.ini`: Replace `doschgpt.ini` with any other config filepath you desire. There is no space between the `-c` and the filepath.
+* `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request. Tokens are only provided by ChatGPT.
 * `-drr`: Display the raw server return headers and json reply
 * `-drt`: Display the timestamp of the latest request/reply
 * `-cp737`: Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_737). Ensure code page is loaded before starting the program.
-* `-cdoschgpt.ini`: Replace `doschgpt.ini` with any other config filepath you desire. There is no space between the `-c` and the filepath.
 * `-fhistory.txt`: Append conversation history to new/existing text file. File will also include debug messages if specified. Replace `history.txt` with any other filepath you desire. There is no space between the `-f` and the filepath.
+
+Example usage:
+
+```bash
+# Connects to ChatGPT using config file at doschgpt.ini
+doschgpt.exe
+
+# Connects to ChatGPT using config file at hf.ini with timestamps after each request and reply
+doschgpt.exe -hf -chf.ini -drt
+```
 
 <img src="images\doschgpt-5155-front-start.jpg" width="500">
 
@@ -115,9 +126,8 @@ go build mockprox.go
 mockprox.exe
 ```
 
-## ChatGPT APIs
+## APIs
 
-Only one ChatGPT API is used which is the chat completion.
 
 ```bash
 # Test API directly
@@ -125,6 +135,11 @@ curl https://api.openai.com/v1/chat/completions -H "Content-Type: application/js
 
 # Call through the https proxy for testing
 curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completions -H "Content-Type: application/json" -H "Authorization: Bearer sk-EhmTsEsKyH4qHZL2mr3hT3BlbkFJd6AcfdBrujJsBBGPRcQ" -d '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "What is MS-DOS?"}], "temperature": 0.7 }'
+
+# Hugging Face API
+curl https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill -X POST -H "Authorization: Bearer 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" -d '{"inputs": {"text":"What is retro-computing?"}, "parameters": { "temperature": 1.0 } }'
+# Hugging Face API with history
+curl https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill -X POST -H "Authorization: Bearer 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" -d '{"inputs": {"past_user_inputs": ["What is retrocomputing?"], "generated_responses": ["A retro computer is a type of computer that was invented in the 1950s."], "text": "I want one", "parameters": { "temperature": 1.0 } }'
 ```
 
 # Changelog
