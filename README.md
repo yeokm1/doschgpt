@@ -40,7 +40,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following optional command line arguments.
 
-* `-hf`: To use Hugging Face
+* `-hf`: To use Hugging Face instead of ChatGPT
 * `-cdoschgpt.ini`: Replace `doschgpt.ini` with any other config filepath you desire. There is no space between the `-c` and the filepath.
 * `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request. Tokens are only provided by ChatGPT.
 * `-drr`: Display the raw server return headers and json reply
@@ -54,7 +54,7 @@ Example usage:
 # Connects to ChatGPT using config file at doschgpt.ini
 doschgpt.exe
 
-# Connects to ChatGPT using config file at hf.ini with timestamps after each request and reply
+# Connects to Hugging Face using config file at hf.ini with timestamps after each request and reply
 doschgpt.exe -hf -chf.ini -drt
 ```
 
