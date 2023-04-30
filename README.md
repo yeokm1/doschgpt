@@ -10,7 +10,9 @@ As there are no native HTTPS APIs for DOS, a [HTTP-to-HTTPS proxy](https://githu
 
 This program is heavily based on sample code in the DOS networking [MTCP library](http://brutmanlabs.org/mTCP/). The program also requires a [DOS Packet Driver](https://en.wikipedia.org/wiki/PC/TCP_Packet_Driver) to be loaded and MTCP to be set for the machine/VM.
 
-**This program was written in a short time as a toy project. It has not been vigorously tested thus is NOT meant for "production" use.**
+To reduce coding complexity and memory usage, the app only sends the previous request/reply set together with the current request to provide the conversational context to the model instead of the entire conversation history. Do notify me if you believe this is an issue for you.
+
+**This program was written in a short time as a toy project.** It has not been vigorously tested thus is **NOT** meant for "production" use.
 
 ## Using the application
 
@@ -127,7 +129,6 @@ mockprox.exe
 ```
 
 ## APIs
-
 
 ```bash
 # Test API directly
