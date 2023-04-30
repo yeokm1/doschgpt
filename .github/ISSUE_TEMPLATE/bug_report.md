@@ -29,7 +29,7 @@ Suggested list of specifications to provide to help me emulate or narrow the iss
 - Expansion cards installed
 
 **Software specifications**
-- Version of doschgpt used and compile date
+- Version of doschgpt used
 - doschgpt configuration
 - DOS version
 - Config.sys and autoexec.bat files
