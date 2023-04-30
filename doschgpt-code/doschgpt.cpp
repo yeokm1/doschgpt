@@ -7,14 +7,15 @@
 #include "utf2cp.h"
 #include "textio.h"
 
-#define VERSION "0.9"
+#define VERSION "0.10"
 
 // User configuration
-#define CONFIG_FILENAME "doschgpt.ini"
+#define CONFIG_FILENAME_DEFAULT "doschgpt.ini"
 #define API_KEY_LENGTH_MAX 200
 #define MODEL_LENGTH_MAX 50
 #define PROXY_HOST_MAX 100
 #define CONV_HISTORY_PATH_SIZE 256
+#define CONFIG_PATH_SIZE 256
 
 char config_apikey[API_KEY_LENGTH_MAX];
 char config_model[MODEL_LENGTH_MAX];
@@ -33,6 +34,9 @@ bool debug_showTimeStamp = false;
 int codePageInUse = CODE_PAGE_437;
 bool convHistoryGiven = false;
 char convHistoryPath[CONV_HISTORY_PATH_SIZE];
+
+bool configPathGiven = false;
+char configPath[CONFIG_PATH_SIZE];
 
 // Message Request
 #define SIZE_MSG_TO_SEND 4096
@@ -152,15 +156,35 @@ int main(int argc, char * argv[]){
       convHistoryGiven = true;
 
       if((strlen(arg) - 2) > (CONV_HISTORY_PATH_SIZE - 1)){
-        printf("File Path argument exceeded %d characters\n", CONV_HISTORY_PATH_SIZE);
+        printf("History File Path argument exceeded %d characters\n", CONV_HISTORY_PATH_SIZE);
         return -3;
       }
       //Copy after -f
       memcpy(convHistoryPath, arg + 2, strlen(arg) - 2);
+    } else if(strstr(arg, "-c") && strlen(arg) != 2){
+      configPathGiven = true;
+
+      if((strlen(arg) - 2) > (CONFIG_PATH_SIZE - 1)){
+        printf("Config File Path argument exceeded %d characters\n", CONFIG_PATH_SIZE);
+        return -4;
+      }
+
+      //Copy after -c
+      memcpy(configPath, arg + 2, strlen(arg) - 2);
     }
   }
 
-  if(openAndProcessConfigFile(CONFIG_FILENAME)){
+  bool configFileOpenStatus;
+
+  if(configPathGiven){
+    configFileOpenStatus = openAndProcessConfigFile(configPath);
+  } else {
+    configFileOpenStatus = openAndProcessConfigFile(CONFIG_FILENAME_DEFAULT);
+  }
+
+  if(configFileOpenStatus){
+
+    printf("Config Path -cX: %s\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
 
     printf("API key contains %d characters\n", strlen(config_apikey));
     printf("Model: %s\n", config_model);
@@ -184,7 +208,7 @@ int main(int argc, char * argv[]){
     }
 
   } else {
-    printf("\nCannot open %s config file containing:\nAPI key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", CONFIG_FILENAME);
+    printf("Cannot open %s config file containing:\nAPI key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
     return -2;
   }
 
