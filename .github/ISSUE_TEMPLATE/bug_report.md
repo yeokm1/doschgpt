@@ -26,10 +26,11 @@ Suggested list of specifications to provide to help me emulate or narrow the iss
 - CPU
 - RAM amount and configuration
 - Network card
-- ISA cards installed
+- Expansion cards installed
 
 **Software specifications**
-- Version of doschgpt used
+- Version of doschgpt used and compile date
+- doschgpt configuration
 - DOS version
 - Config.sys and autoexec.bat files
 - Network configuration
