@@ -34,6 +34,7 @@ Suggested list of specifications to provide to help me emulate or narrow the iss
 - DOS version
 - Config.sys and autoexec.bat files
 - Network configuration
+- http-to-https proxy setup
 
 **Additional context**
 Add any other context about the problem here.
