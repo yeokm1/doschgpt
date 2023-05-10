@@ -53,17 +53,34 @@ void sbtts_read_str(char * str_to_read, int length, bool redirectStdout){
             char currentChar = str_to_read[i];
             int currentLength = i - currentStartPointer;
 
-            // Split along the punctuation
-            if('!' <= currentChar && currentChar <= '/' 
-            || ':' <= currentChar && currentChar <= '@' 
-            || '[' <= currentChar && currentChar <= '`' 
-            || '{' <= currentChar && currentChar <= '~'
-            || currentLength > MAX_TO_READ){
+            if(currentLength > MAX_TO_READ){
+                //Since we reach the end before any punctuation, we should backtrack to find a space to avoid breaking up word.
+                int j;
+                for(j = i; i > currentStartPointer; j--){
+                    char candidateSpace = str_to_read[j];
+                    if(candidateSpace == ' '){
+                        break;
+                    }
+                }
 
-                //printf("start %d length %d stop at %c\n", currentStartPointer, i - currentStartPointer, currentChar);
+                i = j;
+
                 sbtts_read_this_phrase(str_to_read + currentStartPointer, i - currentStartPointer, redirectStdout);            
-                currentStartPointer = i;      
+                currentStartPointer = i;
+
+            } else {
+                // Split along the punctuation
+                if('!' <= currentChar && currentChar <= '/' 
+                || ':' <= currentChar && currentChar <= '@' 
+                || '[' <= currentChar && currentChar <= '`' 
+                || '{' <= currentChar && currentChar <= '~'){
+
+                    //printf("start %d length %d stop at %c\n", currentStartPointer, i - currentStartPointer, currentChar);
+                    sbtts_read_this_phrase(str_to_read + currentStartPointer, i - currentStartPointer, redirectStdout);            
+                    currentStartPointer = i;      
+                }
             }
+
         }
     }
 
