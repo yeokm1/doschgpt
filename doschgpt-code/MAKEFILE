@@ -35,7 +35,7 @@ compile_options += -i=$(tcp_h_dir) -i=$(common_h_dir)
 
 
 tcpobjs = packet.obj arp.obj eth.obj ip.obj tcp.obj tcpsockm.obj udp.obj utils.obj dns.obj timer.obj ipasm.obj trace.obj
-objs = doschgpt.obj network.obj utf2cp.obj utfcp437.obj utfcp737.obj textio.obj
+objs = doschgpt.obj network.obj utf2cp.obj utfcp437.obj utfcp737.obj textio.obj sound.obj
 
 all : clean doschgpt.exe
 

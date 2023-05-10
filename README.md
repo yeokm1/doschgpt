@@ -39,6 +39,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 * Packet Driver
 * MTCP Config Environment variable `MTCPCFG`
 * MTCP Config file configured by DHCP
+* Text-to-speech feature requires the use of a Sound Blaster-compatible sound card and the `BLASTER` variable such as `SET BLASTER=A220 I5 T1 D1 T4` to be set.
 
 5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following optional command line arguments.
 
@@ -49,6 +50,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 * `-drt`: Display the timestamp of the latest request/reply
 * `-cp737`: Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_737). Ensure code page is loaded before starting the program.
 * `-fhistory.txt`: Append conversation history to new/existing text file. File will also include debug messages if specified. Replace `history.txt` with any other filepath you desire. There is no space between the `-f` and the filepath.
+* `-sbtts`: Able to read server reply using a text-to-speech driver used by Dr. Sbaitso.
 
 Example usage:
 
@@ -147,3 +149,8 @@ curl https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distil
 # Changelog
 
 Go to [CHANGELOG.md](CHANGELOG.md).
+
+# Third party sources
+
+1. [MTCP TCP stack by Michal Brutman](http://brutmanlabs.org/mTCP/)
+2. [Text to speech from SmoothTalker by Firstbyte and Creative Text-to-Speech Reader](https://winworldpc.com/product/dr-sbaitso/2x)

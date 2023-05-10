@@ -1,6 +1,10 @@
 # Change Log
+* v0.12 (10 May 2023):
+* * (New feature) Ability to read using SmoothTalker by Firstbyte and Creative Text-to-Speech Reader
+* * Word wrap function to avoid breaking up words at the end of line
+* * Consolidate some of the parsed arguments
 * v0.11 (30 Apr 2023):
-* * Support for Hugging Face API
+* * (New feature) Support for Hugging Face API
 * v0.10 (30 Apr 2023):
 * * Can customise path to configuration file
 * v0.9 (27 Apr 2023):
