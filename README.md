@@ -66,6 +66,16 @@ doschgpt.exe -hf -chf.ini -drt
 
 Parsed options will be displayed.
 
+### Release details
+
+* doschgpt.exe: Main binary
+* doschgpt.ini: Sample configuration file for ChatGPT
+* hf.ini: Sample configuration file for Hugging Face
+* Sbtalker.exe: Smoothtalker by First Byte text-to-speech engine that loads as a TSR (This is called by the client on start)
+* Blaster.drv: Used by Smoothtalker to talk to a Sound Blaster card
+* Remove.exe: Unloads the Smoothtalker TSR (This is called by the client on end)
+* Read.exe: Reads its command line arguments to the Smoothtalker TSR
+
 ## Compilation
 
 To compile this application, you have to use Open Watcom 2.0 beta which you can download from [here](https://github.com/open-watcom/open-watcom-v2/releases/tag/2023-04-01-Build). Open Watcom 2.0 for 64-bit Windows which was released on 2023-04-01 02:52:44 is used. The v1.9 version seems to create binaries with issues on some platforms.
@@ -153,4 +163,4 @@ Go to [CHANGELOG.md](CHANGELOG.md).
 # Third party sources
 
 1. [MTCP TCP stack by Michal Brutman](http://brutmanlabs.org/mTCP/)
-2. [Text to speech from SmoothTalker by Firstbyte and Creative Text-to-Speech Reader](https://winworldpc.com/product/dr-sbaitso/2x)
+2. [Text to speech from SmoothTalker by First Byte and Creative Text-to-Speech Reader](https://winworldpc.com/product/dr-sbaitso/2x)
