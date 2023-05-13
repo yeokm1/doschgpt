@@ -10,7 +10,9 @@ As there are no native HTTPS APIs for DOS, a [HTTP-to-HTTPS proxy](https://githu
 
 This program is heavily based on sample code in the DOS networking [MTCP library](http://brutmanlabs.org/mTCP/). The program also requires a [DOS Packet Driver](https://en.wikipedia.org/wiki/PC/TCP_Packet_Driver) to be loaded and MTCP to be set for the machine/VM.
 
-To reduce coding complexity and memory usage, the app only sends the previous request/reply set together with the current request to provide the conversational context to the model instead of the entire conversation history. Do notify me if you believe this is an issue for you.
+Using the Text-to-speech feature requires a Sound Blaster-compatible card and 8Mhz CPU.
+
+To reduce coding complexity and memory usage, the app only sends the previous request/reply set together with the current request to provide the conversational context to the model instead of the entire conversation history. Do notify me if you believe this is an issue for you and you prefer more history to be sent.
 
 **This program was written in a short time as a toy project.** It has not been vigorously tested thus is **NOT** meant for "production" use.
 
@@ -39,7 +41,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 * Packet Driver
 * MTCP Config Environment variable `MTCPCFG`
 * MTCP Config file configured by DHCP
-* Text-to-speech feature requires the use of a Sound Blaster-compatible sound card and the `BLASTER` variable such as `SET BLASTER=A220 I5 T1 D1 T4` to be set.
+* Text-to-speech feature requires the `BLASTER` variable such as `SET BLASTER=A220 I5 T1 D1 T4` to be set.
 
 5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following optional command line arguments.
 
@@ -162,5 +164,5 @@ Go to [CHANGELOG.md](CHANGELOG.md).
 
 # Third party sources
 
-1. [MTCP TCP stack by Michal Brutman](http://brutmanlabs.org/mTCP/)
-2. [Text to speech from SmoothTalker by First Byte and Creative Text-to-Speech Reader](https://winworldpc.com/product/dr-sbaitso/2x)
+1. [MTCP TCP stack by Michael Brutman](http://brutmanlabs.org/mTCP/)
+2. [Text to speech from SmoothTalker by First Byte and Creative Text-to-Speech Reader downloaded from Winworld](https://winworldpc.com/product/dr-sbaitso/2x)
