@@ -8,7 +8,7 @@
 #include "textio.h"
 #include "sound.h"
 
-#define VERSION "0.12"
+#define VERSION "0.13"
 
 #define DOS_CHATGPT_WELCOME_MSG "Welcome to DOS ChatGPT client"
 #define DOS_HUGGING_FACE_WELCOME_MSG "Welcome to DOS Hugging Face client"

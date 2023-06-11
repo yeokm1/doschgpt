@@ -1,4 +1,6 @@
 # Change Log
+* v0.13 (11 June 2023):
+* * Corrected parsing bug where ChatGPT JSON reply now provides in human-readable output with newlines
 * v0.12 (10 May 2023):
 * * (New feature) Ability to read using SmoothTalker by Firstbyte and Creative Text-to-Speech Reader
 * * Word wrap function to avoid breaking up words at the end of line

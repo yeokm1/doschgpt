@@ -375,10 +375,10 @@ bool network_get_chatgpt_completion(char * hostname, int port, char * api_key, c
 
             if(content_ptr){
                 //Advance to start of content
-                char * contentStartPointer = content_ptr + 11;
+                char * contentStartPointer = content_ptr + 12;
 
                 //Locate message termination
-                char * contentEndPointer = strstr(contentStartPointer, "\"}");
+                char * contentEndPointer = strstr(contentStartPointer, "\"\n      }");
 
                 if(contentEndPointer != NULL){
                     output->content = contentStartPointer;
