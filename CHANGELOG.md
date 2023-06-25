@@ -1,4 +1,6 @@
 # Change Log
+* v0.14 (25 June 2023):
+* * Increased delay after receiving no bytes to 2 seconds to confirm no more incoming packets
 * v0.13 (11 June 2023):
 * * Corrected parsing bug where ChatGPT JSON reply now provides in human-readable output with newlines
 * v0.12 (10 May 2023):

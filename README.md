@@ -40,7 +40,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 * Packet Driver
 * MTCP Config Environment variable `MTCPCFG`
-* MTCP Config file configured by DHCP
+* MTCP Config file configured by DHCP or Static IP
 * Text-to-speech feature requires the `BLASTER` variable such as `SET BLASTER=A220 I5 T1 D1 T4` to be set.
 
 5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following optional command line arguments.
@@ -51,7 +51,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 * `-drr`: Display the raw server return headers and json reply
 * `-drt`: Display the timestamp of the latest request/reply
 * `-cp737`: Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_737). Ensure code page is loaded before starting the program.
-* `-fhistory.txt`: Append conversation history to new/existing text file. File will also include debug messages if specified. Replace `history.txt` with any other filepath you desire. There is no space between the `-f` and the filepath.
+* `-fhistory.txt`: Append conversation history to new/existing text file. File will also include debug messages if specified above. Replace `history.txt` with any other filepath you desire. There is no space between the `-f` and the filepath.
 * `-sbtts`: Able to read server reply using a text-to-speech driver used by Dr. Sbaitso.
 
 Example usage:
@@ -73,10 +73,12 @@ Parsed options will be displayed.
 * doschgpt.exe: Main binary
 * doschgpt.ini: Sample configuration file for ChatGPT
 * hf.ini: Sample configuration file for Hugging Face
-* Sbtalker.exe: Smoothtalker by First Byte text-to-speech engine that loads as a TSR (This is called by the client on start)
-* Blaster.drv: Used by Smoothtalker to talk to a Sound Blaster card
-* Remove.exe: Unloads the Smoothtalker TSR (This is called by the client on end)
-* Read.exe: Reads its command line arguments to the Smoothtalker TSR
+
+* These files are from the release of Dr Sbaitso and have to be placed in the same directory as `doschgpt.exe`.
+    * Sbtalker.exe: Smoothtalker by First Byte text-to-speech engine that loads as a TSR (This is called by the client on start)
+    * Blaster.drv: Used by Smoothtalker to talk to a Sound Blaster card
+    * Remove.exe: Unloads the Smoothtalker TSR (This is called by the client on end)
+    * Read.exe: Reads its command line arguments to the Smoothtalker TSR
 
 ## Compilation
 

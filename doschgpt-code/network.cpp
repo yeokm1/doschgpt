@@ -25,8 +25,7 @@
 #define PREVIOUS_MESSAGE_SIZE 5000
 #define PREVIOUS_GPT_REPLY_SIZE 8000
 
-
-#define TIME_TO_WAIT_AFTER_LAST_FRAME 200
+#define TIME_TO_WAIT_AFTER_LAST_FRAME 2000
 
 char * api_body_buffer = NULL;
 char * sendRecvBuffer = NULL;
