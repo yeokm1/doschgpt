@@ -41,7 +41,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 * Packet Driver
 * MTCP Config Environment variable `MTCPCFG`
 * MTCP Config file configured by DHCP or Static IP
-* Text-to-speech feature requires the `BLASTER` variable such as `SET BLASTER=A220 I5 T1 D1 T4` to be set.
+* Text-to-speech feature requires the `BLASTER` variable such as `SET BLASTER=A220 I5 D1 T4` to be set.
 
 5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following optional command line arguments.
 
