@@ -22,7 +22,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 1. Both OpenAI and Hugging Face requires an API key/token to use their APIs. Follow the [instructions on OpenAI](https://platform.openai.com/account/api-keys) or [Hugging Face](https://huggingface.co/settings/tokens) websites to obtain this key before proceeding. A `read` token for Hugging Face is sufficient.
 
-2. Download and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases) on a modern machine/SBC.
+2. Download and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases) on a modern machine/SBC. If you don't want the hassle of using your own proxy server, I have already setup a remote VM. Contact me privately for access details to this VM.
 
 3. The application requires a config file. By default it will use the filename `doschgpt.ini` but you can specify another path with the `-c` argument. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
 
