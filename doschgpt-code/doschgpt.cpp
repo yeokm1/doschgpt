@@ -8,7 +8,7 @@
 #include "textio.h"
 #include "sound.h"
 
-#define VERSION "0.14"
+#define VERSION "0.15"
 
 #define DOS_CHATGPT_WELCOME_MSG "Welcome to DOS ChatGPT client"
 #define DOS_HUGGING_FACE_WELCOME_MSG "Welcome to DOS Hugging Face client"
@@ -282,7 +282,14 @@ int main(int argc, char * argv[]){
   }
 
   if(sound_blaster_tts){
-    sbtts_init();
+    bool sbtts_init_status = sbtts_init();
+
+    if(sbtts_init_status == false){
+      printf("Error: First Byte Text-to-Speech Engine is not installed.\n");
+      
+      endFunction();
+      return -3;
+    }
   }
 
   if(sound_blaster_tts){

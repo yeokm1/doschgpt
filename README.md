@@ -78,7 +78,7 @@ Parsed options will be displayed.
     * Sbtalker.exe: Smoothtalker by First Byte text-to-speech engine that loads as a TSR (This is called by the client on start)
     * Blaster.drv: Used by Smoothtalker to talk to a Sound Blaster card
     * Remove.exe: Unloads the Smoothtalker TSR (This is called by the client on end)
-    * Read.exe: Reads its command line arguments to the Smoothtalker TSR
+    * Read.exe: Reads its command line arguments to the Smoothtalker TSR (No longer used with integration of [dosbtalk](https://github.com/systoolz/dosbtalk))
 
 ## Compilation
 
@@ -168,3 +168,4 @@ Go to [CHANGELOG.md](CHANGELOG.md).
 
 1. [MTCP TCP stack by Michael Brutman](http://brutmanlabs.org/mTCP/)
 2. [Text to speech from SmoothTalker by First Byte and Creative Text-to-Speech Reader downloaded from Winworld](https://winworldpc.com/product/dr-sbaitso/2x)
+3. [Dosbtalk libarry to interface with First-Byte Engine directly](https://github.com/systoolz/dosbtalk)

@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "speech.h"
 
 #define READ_STR_FORMAT "read %.*s"
-#define READ_SIZE_COMMAND 120
+#define READ_SIZE_BUFF 256
 
-#define MAX_TO_READ 100
+#define MAX_TO_READ 250
 
-char commandToRead[READ_SIZE_COMMAND];
+char phraseToRead[READ_SIZE_BUFF];
 
 int sbtts_run_command(char * command, bool redirectStdout){
 
@@ -28,17 +30,32 @@ int sbtts_run_command(char * command, bool redirectStdout){
     
 }
 
-void sbtts_init(){
+bool sbtts_init(){
     sbtts_run_command("SBTALKER /dBLASTER", false);
+
+    if(DetectSpeech()){
+        ResetSpeech();
+        return true;
+    } else {
+        return false;
+    }
 }
  
 void sbtts_end(){
+    ResetSpeech();
     sbtts_run_command("REMOVE", false);
 }
 
 void sbtts_read_this_phrase(char * phrase, int length, bool redirectStdout){
-    snprintf(commandToRead, READ_SIZE_COMMAND, READ_STR_FORMAT, length, phrase);
-    sbtts_run_command(commandToRead, redirectStdout);
+    //Clear buffer before starting every new phrase
+    ResetSpeech();
+    //Set appropriate speed
+    SetGlobals(0, 0, 5, 5, 3);
+    
+    memset(phraseToRead, 0, READ_SIZE_BUFF);
+    memcpy(phraseToRead, phrase, length);
+    
+    Say(phraseToRead);
 }
 
 void sbtts_read_str(char * str_to_read, int length, bool redirectStdout){
