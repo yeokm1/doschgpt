@@ -168,4 +168,4 @@ Go to [CHANGELOG.md](CHANGELOG.md).
 
 1. [MTCP TCP stack by Michael Brutman](http://brutmanlabs.org/mTCP/)
 2. [Text to speech from SmoothTalker by First Byte and Creative Text-to-Speech Reader downloaded from Winworld](https://winworldpc.com/product/dr-sbaitso/2x)
-3. [Dosbtalk libarry to interface with First-Byte Engine directly](https://github.com/systoolz/dosbtalk)
+3. [Dosbtalk libary to interface with First-Byte Engine directly](https://github.com/systoolz/dosbtalk)

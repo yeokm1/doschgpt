@@ -1,6 +1,6 @@
 # Change Log
 * v0.15 (17 Sept 2023):
-* * Inetgrated [dosbtalk library](https://github.com/systoolz/dosbtalk) to interface with First-Byte Engine directly
+* * Integrated [dosbtalk library](https://github.com/systoolz/dosbtalk) to interface with First-Byte Engine directly
 * v0.14 (25 June 2023):
 * * Increased delay after receiving no bytes to 2 seconds to confirm no more incoming packets
 * v0.13 (11 June 2023):
