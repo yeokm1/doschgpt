@@ -18,6 +18,8 @@ To reduce coding complexity and memory usage, the app only sends the previous re
 
 ## Using the application
 
+A [setup video "How to install the MS-DOS ChatGPT Client"](https://www.youtube.com/watch?v=-hLCr38IYyM) has been posted by [retrorygaming](https://www.youtube.com/@retrorygaming). You can use that as reference setup tutorial.
+
 Application binary can be found in the `releases` directory or Github Releases section but do the following first.
 
 1. Both OpenAI and Hugging Face requires an API key/token to use their APIs. Follow the [instructions on OpenAI](https://platform.openai.com/account/api-keys) or [Hugging Face](https://huggingface.co/settings/tokens) websites to obtain this key before proceeding. A `read` token for Hugging Face is sufficient.
