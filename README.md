@@ -18,7 +18,7 @@ To reduce coding complexity and memory usage, the app only sends the previous re
 
 ## Using the application
 
-A [setup video "How to install the MS-DOS ChatGPT Client"](https://www.youtube.com/watch?v=-hLCr38IYyM) has been posted by [retrorygaming](https://www.youtube.com/@retrorygaming). You can use that as reference setup tutorial.
+A [setup video "How to install the MS-DOS ChatGPT Client"](https://www.youtube.com/watch?v=-hLCr38IYyM) has been posted by [retrorygaming](https://www.youtube.com/@retrorygaming). You can use this as a reference setup tutorial.
 
 Application binary can be found in the `releases` directory or Github Releases section but do the following first.
 
