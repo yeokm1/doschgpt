@@ -1,0 +1,60 @@
+Me:
+hi
+
+App Error:
+Cannot find end of content
+HTTP/1.1 200 OK
+Date: Fri, 16 Aug 2024 13:08:41 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: close
+openai-organization: user-qxnw6l7wnl6h38ledjaswltr
+openai-processing-ms: 1016
+openai-version: 2020-10-01
+strict-transport-security: max-age=15552000; includeSubDomains; preload
+x-ratelimit-limit-requests: 500
+x-ratelimit-limit-tokens: 30000
+x-ratelimit-remaining-requests: 499
+x-ratelimit-remaining-tokens: 29982
+x-ratelimit-reset-requests: 120ms
+x-ratelimit-reset-tokens: 36ms
+x-request-id: req_6771fc30de5ef5cc0381025da2f3ecf0
+CF-Cache-Status: DYNAMIC
+Set-Cookie: __cf_bm=Qt6V3eUS15SfNie5OrDDaEwAICMkB2W.hr0P70RyLCc-1723813721-1.0.1.1-eDoKewnp_RNxuyT6UbUAOcvq6kFmRWO9bzKO775FSvLaIRecnYHdN6uXnAt12GDJMORffmDawO_jfUpGaLoOFA; path=/; expires=Fri, 16-Aug-24 13:38:41 GMT; domain=.api.openai.com; HttpOnly; Secure
+X-Content-Type-Options: nosniff
+Set-Cookie: _cfuvid=UcI6sRZS4JwKhqSpzhzV04XXD6lSyrDZ.lvkNNq1ugM-1723813721402-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+Server: cloudflare
+CF-RAY: 8b41a781de709ca5-SIN
+alt-svc: h3=":443"; ma=86400
+
+205
+{
+  "id": "chatcmpl-9wqz2wztXw5DYS3ioSztdfKwooXkf",
+  "object": "chat.completion",
+  "created": 1723813720,
+  "model": "gpt-4o-2024-05-13",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello! How can I assist you today?",
+        "refusal": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 8,
+    "completion_tokens": 9,
+    "total_tokens": 17
+  },
+  "system_fingerprint": "fp_3aa7262c27"
+}
+
+0
+
+
+
+Me:

@@ -1,4 +1,6 @@
 # Change Log
+* v0.16 (16 Aug 2024):
+* * Corrected parsing bug in finding end of value for content key
 * v0.15 (17 Sept 2023):
 * * Integrated [dosbtalk library](https://github.com/systoolz/dosbtalk) to interface with First-Byte Engine directly
 * v0.14 (25 June 2023):

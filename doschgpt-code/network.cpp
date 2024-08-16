@@ -377,7 +377,7 @@ bool network_get_chatgpt_completion(char * hostname, int port, char * api_key, c
                 char * contentStartPointer = content_ptr + 12;
 
                 //Locate message termination
-                char * contentEndPointer = strstr(contentStartPointer, "\"\n      }");
+                char * contentEndPointer = strstr(contentStartPointer, "\",");
 
                 if(contentEndPointer != NULL){
                     output->content = contentStartPointer;
