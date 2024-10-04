@@ -17,8 +17,8 @@
 #define CHATGPT_API_BODY_SUBSEQUENT "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}, {\"role\": \"assistant\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
 
 #define HF_API_CHAT_COMPLETION "POST /models/%s HTTP/1.1\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nHost: api-inference.huggingface.co\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
-#define HF_API_BODY_INITIAL "{\"inputs\": {\"text\":\"%s\" }, \"parameters\": { \"temperature\": %0.1f } }"
-#define HF_API_BODY_SUBSEQUENT "{\"inputs\": {\"past_user_inputs\": [\"%s\"], \"generated_responses\": [\"%s\"], \"text\":\"%s\" }, \"parameters\": { \"temperature\": %0.1f } }"
+#define HF_API_BODY_INITIAL "{ \"inputs\": { \"text\", \"%s\"}, \"parameters\": { \"temperature\": %.1f } }"
+#define HF_API_BODY_SUBSEQUENT "{ \"inputs\": [{ \"text\", \"%s\"}, { \"text\", \"%s\"}, { \"text\", \"%s\"}], \"parameters\": { \"temperature\": %.1f } }"
 
 #define API_BODY_SIZE_BUFFER 12000
 #define SEND_RECEIVE_BUFFER 14000
@@ -452,10 +452,10 @@ bool network_get_huggingface_conversation(char * hostname, int port, char * api_
         if(errorPtr){
 
             //Advance to start of message
-            char * messageStartPointer = errorPtr + 10;
+            char * messageStartPointer = errorPtr + 9;
 
             //Locate message termination
-            char * messageEndPointer = strstr(messageStartPointer, "\",");
+            char * messageEndPointer = strstr(messageStartPointer, "\"}");
 
             if(messageEndPointer != NULL){
                 int length = messageEndPointer - messageStartPointer;
@@ -474,10 +474,10 @@ bool network_get_huggingface_conversation(char * hostname, int port, char * api_
 
             if(content_ptr){
                 //Advance to start of generated_text
-                char * contentStartPointer = content_ptr + 18;
+                char * contentStartPointer = content_ptr + 19;
 
                 //Locate message termination
-                char * contentEndPointer = strstr(contentStartPointer, "\",");
+                char * contentEndPointer = strstr(contentStartPointer, "\"}");
 
                 if(contentEndPointer != NULL){
                     output->content = contentStartPointer;
