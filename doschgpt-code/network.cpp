@@ -452,10 +452,10 @@ bool network_get_huggingface_conversation(char * hostname, int port, char * api_
         if(errorPtr){
 
             //Advance to start of message
-            char * messageStartPointer = errorPtr + 9;
+            char * messageStartPointer = errorPtr + 10;
 
             //Locate message termination
-            char * messageEndPointer = strstr(messageStartPointer, "\"}");
+            char * messageEndPointer = strstr(messageStartPointer, "\",");
 
             if(messageEndPointer != NULL){
                 int length = messageEndPointer - messageStartPointer;
