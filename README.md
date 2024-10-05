@@ -29,7 +29,7 @@ Application binary can be found in the `releases` directory or Github Releases s
 3. The application requires a config file. By default it will use the filename `doschgpt.ini` but you can specify another path with the `-c` argument. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
 
 * API key: Place your key without quotes (API key in this sample file has been revoked)
-* Model: Language model to use such as but not limited to. `gpt-4o` for ChatGPT. `facebook/blenderbot-400M-distill` or `microsoft/DialoGPT-large` for Hugging Face. More details and models for Hugging Face can be found [here](https://huggingface.co/tasks/conversational).
+* Model: Language model to use such as but not limited to. `gpt-4o` for ChatGPT. `mistralai/Mistral-7B-Instruct-v0.3` for Hugging Face. More details and models for Hugging Face can be found [here](https://huggingface.co/tasks/conversational).
 * Request Temperature: How random the completion will be. More [OpenAI details](https://platform.openai.com/docs/guides/chat/instructing-chat-models) and [Hugging Face details](https://huggingface.co/docs/api-inference/detailed_parameters#conversational-task)
 * Proxy hostname: Hostname IP of the proxy
 * Proxy port: Proxy Port
@@ -156,10 +156,10 @@ curl https://api.openai.com/v1/chat/completions -H "Content-Type: application/js
 curl --proxy "http://192.168.1.144:8080" https://api.openai.com/v1/chat/completions -H "Content-Type: application/json" -H "Authorization: Bearer sk-EhmTsEsKyH4qHZL2mr3hT3BlbkFJd6AcfdBrujJsBBGPRcQ" -d '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "What is MS-DOS?"}], "temperature": 0.7 }'
 
 # Hugging Face API
-curl https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill -X POST -H "Authorization: Bearer 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" -d '{"inputs": {"text":"What is retro-computing?"}, "parameters": { "temperature": 1.0 } }'
+curl -X POST -H "Authorization: Bearer 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" -H "Content-Type: application/json" -d '{"inputs": "[INST]Tell me about Singapore[/INST]", "parameters": { "temperature": 0.7 , "max_new_tokens": 400} }' https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3
 
 # Hugging Face API with history
-curl https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill -X POST -H "Authorization: Bearer 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" -d '{"inputs": {"past_user_inputs": ["What is retrocomputing?"], "generated_responses": ["A retro computer is a type of computer that was invented in the 1950s."], "text": "I want one", "parameters": { "temperature": 1.0 } }'
+curl -X POST -H "Authorization: Bearerhf_cLcKjUgeSUDjtdnYQrxLvErXNkAVubAZDO" -H "Content-Type: application/json" -d '{"inputs": "[INST]Tell me about Singapore in 5 words[/INST]Vibrant, Multicultural, Skyscrapers, Gardens, Clean.[INST]Where is it?[/INST]", "parameters": { "temperature": 0.7 , "max_new_tokens": 400} }' https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3
 ```
 
 # Changelog
