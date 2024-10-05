@@ -1,4 +1,7 @@
 # Change Log
+* v0.17 (5 Oct 2024):
+* * Corrected JSON request and reply bug in Hugging Face due to API changes
+* * Max new tokens for Hugging Face is hardcoded at 400
 * v0.16 (3 Sept 2024):
 * * Corrected parsing bug in finding end of value for content key
 * * Changed default model in config file to gpt-4o

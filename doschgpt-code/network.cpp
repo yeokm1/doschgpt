@@ -16,9 +16,10 @@
 #define CHATGPT_API_BODY_INITIAL "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
 #define CHATGPT_API_BODY_SUBSEQUENT "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}, {\"role\": \"assistant\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"temperature\": %.1f }"
 
+//Max Hugging Face reply is 400 tokens
 #define HF_API_CHAT_COMPLETION "POST /models/%s HTTP/1.1\r\nContent-Type: application/json\r\nAuthorization: Bearer %s\r\nHost: api-inference.huggingface.co\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
-#define HF_API_BODY_INITIAL "{ \"inputs\": { \"text\", \"%s\"}, \"parameters\": { \"temperature\": %.1f } }"
-#define HF_API_BODY_SUBSEQUENT "{ \"inputs\": [{ \"text\", \"%s\"}, { \"text\", \"%s\"}, { \"text\", \"%s\"}], \"parameters\": { \"temperature\": %.1f } }"
+#define HF_API_BODY_INITIAL "{\"inputs\": \"[INST]%s[/INST]\", \"parameters\": { \"temperature\": %.1f , \"max_new_tokens\": 400} }"
+#define HF_API_BODY_SUBSEQUENT "{\"inputs\": \"[INST]%s[/INST]%s[INST]%s[/INST]\", \"parameters\": { \"temperature\": %.1f , \"max_new_tokens\": 400} }"
 
 #define API_BODY_SIZE_BUFFER 12000
 #define SEND_RECEIVE_BUFFER 14000
@@ -470,11 +471,12 @@ bool network_get_huggingface_conversation(char * hostname, int port, char * api_
    
 
         } else {
-            char * content_ptr = strstr(sendRecvBuffer, "\"generated_text\":");
+            //Go to last occurence of [/INST] as after that is the start of the latest reply
+            char * content_ptr = network_strrstr(sendRecvBuffer, "[/INST]");
 
             if(content_ptr){
                 //Advance to start of generated_text
-                char * contentStartPointer = content_ptr + 19;
+                char * contentStartPointer = content_ptr + 7;
 
                 //Locate message termination
                 char * contentEndPointer = strstr(contentStartPointer, "\"}");
@@ -514,4 +516,23 @@ bool network_get_huggingface_conversation(char * hostname, int port, char * api_
     // }
     
     return status;
+}
+
+// Custom function to find the last occurrence of a substring
+char * network_strrstr(const char *haystack, const char *needle) {
+    char *last_occurrence = NULL;
+    char *current_occurrence = (char *)haystack;
+
+    // If the needle is an empty string, return the haystack
+    if (*needle == '\0') {
+        return (char *)haystack;
+    }
+
+    // Search for occurrences of the needle
+    while ((current_occurrence = strstr(current_occurrence, needle)) != NULL) {
+        last_occurrence = current_occurrence;
+        current_occurrence++;  // Move past the current occurrence to continue searching
+    }
+
+    return last_occurrence;
 }
