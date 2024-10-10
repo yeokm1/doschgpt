@@ -1,4 +1,6 @@
 # Change Log
+* v0.18 (11 Oct 2024):
+* * Added support for Ollama servers. (No HTTPS proxy is required as Ollama uses unencrypted HTTP.)
 * v0.17 (5 Oct 2024):
 * * Corrected JSON request and reply bug in Hugging Face due to API changes
 * * Max new tokens for Hugging Face is hardcoded at 400

@@ -74,5 +74,7 @@ bool network_get_chatgpt_completion(char * hostname, int port, char * api_key, c
 
 bool network_get_huggingface_conversation(char * hostname, int port, char * api_key, char * model, char * message, float temperature, COMPLETION_OUTPUT * output);
 
+bool network_get_ollama_conversation(char * hostname, int port, char * model, char * message, float temperature, COMPLETION_OUTPUT * output);
+
 // Custom function to locate the last instance of needle in haystack
 char * network_strrstr(const char *haystack, const char *needle);

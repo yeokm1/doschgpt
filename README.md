@@ -1,12 +1,12 @@
 # doschgpt
 
-A proof-of-concept ChatGPT and Hugging Face client for DOS. 
+A proof-of-concept ChatGPT, Hugging Face and Ollama client for DOS. 
 
 <img src="images\doschgpt-front-combined.jpg" width="1000">
 
 Photos of the client running on [my 1984 IBM 5155 Portable PC](https://github.com/yeokm1/retro-configs/tree/master/desktops/ibm-5155) with a 4.77Mhz Intel 8088 CPU with MS-DOS 6.22.
 
-As there are no native HTTPS APIs for DOS, a [HTTP-to-HTTPS proxy](https://github.com/yeokm1/http-to-https-proxy) like this I've written running on a modern machine is needed.
+As there are no native HTTPS APIs for DOS, a [HTTP-to-HTTPS proxy](https://github.com/yeokm1/http-to-https-proxy) like this I've written running on a modern machine is needed. Proxy is not required for Ollama servers as they just use unencrypted HTTP.
 
 This program is heavily based on sample code in the DOS networking [MTCP library](http://brutmanlabs.org/mTCP/). The program also requires a [DOS Packet Driver](https://en.wikipedia.org/wiki/PC/TCP_Packet_Driver) to be loaded and MTCP to be set for the machine/VM.
 
@@ -24,15 +24,15 @@ Application binary can be found in the `releases` directory or Github Releases s
 
 1. Both OpenAI and Hugging Face requires an API key/token to use their APIs. Follow the [instructions on OpenAI](https://platform.openai.com/account/api-keys) or [Hugging Face](https://huggingface.co/settings/tokens) websites to obtain this key before proceeding. A `read` token for Hugging Face is sufficient.
 
-2. Download and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases) on a modern machine/SBC.
+2. Download and start up [http-to-https-proxy](https://github.com/yeokm1/http-to-https-proxy/releases) on a modern machine/SBC. Proxy is not required for Ollama but you need to set the `OLLAMA_HOST` environment variable in your server to `0.0.0.0` allow external access.
 
 3. The application requires a config file. By default it will use the filename `doschgpt.ini` but you can specify another path with the `-c` argument. Modify the configuration file to suit your needs in this order. A sample file can be found with the binary.
 
-* API key: Place your key without quotes (API key in this sample file has been revoked)
-* Model: Language model to use such as but not limited to. `gpt-4o` for ChatGPT. `mistralai/Mistral-7B-Instruct-v0.3` for Hugging Face. More details and models for Hugging Face can be found [here](https://huggingface.co/tasks/conversational).
+* API key: Place your key without quotes (API key in this sample file has been revoked). For Ollama, leave a dummy line here.
+* Model: Language model to use such as but not limited to. `gpt-4o` for ChatGPT. `mistralai/Mistral-7B-Instruct-v0.3` for Hugging Face. More details and models for Hugging Face can be found [here](https://huggingface.co/tasks/conversational). `llama3.2` for Ollama.
 * Request Temperature: How random the completion will be. More [OpenAI details](https://platform.openai.com/docs/guides/chat/instructing-chat-models) and [Hugging Face details](https://huggingface.co/docs/api-inference/detailed_parameters#conversational-task)
-* Proxy hostname: Hostname IP of the proxy
-* Proxy port: Proxy Port
+* Proxy hostname: Hostname IP of the proxy or Ollama server
+* Proxy port: Proxy port or Ollama port.
 * Outgoing start port: Start of a range of randomly selected outgoing port
 * Outgoing end port: End of a range of randomly selected outgoing port
 * Socket connect timeout (ms): How long to wait when attempting to connect to proxy
@@ -48,8 +48,9 @@ Application binary can be found in the `releases` directory or Github Releases s
 5. Just launch `doschgpt.exe` in your machine and fire away. Press the ESC key to quit the application. You may use the following optional command line arguments.
 
 * `-hf`: To use Hugging Face instead of ChatGPT
+* `-ol`: To use Ollama instead of ChatGPT
 * `-cdoschgpt.ini`: Replace `doschgpt.ini` with any other config filepath you desire. There is no space between the `-c` and the filepath.
-* `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request. Tokens are only provided by ChatGPT.
+* `-dri`: Print the outgoing port, number of prompt and completion tokens used after each request. Tokens are only provided by ChatGPT and Ollama.
 * `-drr`: Display the raw server return headers and json reply
 * `-drt`: Display the timestamp of the latest request/reply
 * `-cp737`: Supports Greek [Code Page 737](https://en.wikipedia.org/wiki/Code_page_737). Ensure code page is loaded before starting the program.
@@ -64,6 +65,9 @@ doschgpt.exe
 
 # Connects to Hugging Face using config file at hf.ini with timestamps after each request and reply
 doschgpt.exe -hf -chf.ini -drt
+
+# Connects to Ollama using config file at ollama.ini and use Sound Blaster text to speech engine
+doschgpt.exe -sbtts -ol -collama.ini
 ```
 
 <img src="images\doschgpt-5155-front-start.jpg" width="500">
@@ -75,6 +79,7 @@ Parsed options will be displayed.
 * doschgpt.exe: Main binary
 * doschgpt.ini: Sample configuration file for ChatGPT
 * hf.ini: Sample configuration file for Hugging Face
+* ollama.ini: Sample configuration file for Ollama
 
 * These files are from the release of Dr Sbaitso and have to be placed in the same directory as `doschgpt.exe`.
     * Sbtalker.exe: Smoothtalker by First Byte text-to-speech engine that loads as a TSR (This is called by the client on start)

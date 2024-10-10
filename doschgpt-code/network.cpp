@@ -21,6 +21,10 @@
 #define HF_API_BODY_INITIAL "{\"inputs\": \"[INST]%s[/INST]\", \"parameters\": { \"temperature\": %.1f , \"max_new_tokens\": 400} }"
 #define HF_API_BODY_SUBSEQUENT "{\"inputs\": \"[INST]%s[/INST]%s[INST]%s[/INST]\", \"parameters\": { \"temperature\": %.1f , \"max_new_tokens\": 400} }"
 
+#define OL_API_CHAT_COMPLETION "POST /api/chat HTTP/1.1\r\nContent-Type: application/json\r\nHost: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s"
+#define OL_API_BODY_INITIAL "{ \"model\": \"%s\", \"messages\": [ { \"role\": \"user\", \"content\": \"%s\" } ], \"options\": { \"temperature\": %.1f }, \"stream\": false }"
+#define OL_API_BODY_SUBSEQUENT "{ \"model\": \"%s\", \"messages\": [{\"role\": \"user\", \"content\": \"%s\"}, {\"role\": \"assistant\", \"content\": \"%s\"}, {\"role\": \"user\", \"content\": \"%s\"}], \"options\": { \"temperature\": %.1f }, \"stream\": false }"
+
 #define API_BODY_SIZE_BUFFER 12000
 #define SEND_RECEIVE_BUFFER 14000
 #define PREVIOUS_MESSAGE_SIZE 5000
@@ -513,6 +517,119 @@ bool network_get_huggingface_conversation(char * hostname, int port, char * api_
 
     // if(output->error == 1){
     //     puts(recvBuffer);
+    // }
+    
+    return status;
+}
+
+bool network_get_ollama_conversation(char * hostname, int port, char * model, char * message, float temperature, COMPLETION_OUTPUT * output){
+    int messageLength = strlen(message);
+
+    memset(previousTempMessage, 0, PREVIOUS_MESSAGE_SIZE);
+    memcpy(previousTempMessage, message, messageLength < PREVIOUS_MESSAGE_SIZE ? messageLength : PREVIOUS_MESSAGE_SIZE);
+
+    int actual_body_size = 0;
+
+    memset(api_body_buffer, 0, API_BODY_SIZE_BUFFER);
+
+    if(strlen(previousMessage) > 0 && strlen(previousGPTReply) > 0){
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, OL_API_BODY_SUBSEQUENT, model, previousMessage, previousGPTReply, message, temperature);
+    } else {
+        actual_body_size = snprintf(api_body_buffer, API_BODY_SIZE_BUFFER, OL_API_BODY_INITIAL, model, message, temperature);
+    }
+
+    memset(sendRecvBuffer, 0, SEND_RECEIVE_BUFFER);
+    snprintf(sendRecvBuffer, SEND_RECEIVE_BUFFER, OL_API_CHAT_COMPLETION, hostname, actual_body_size, api_body_buffer);
+    //puts(sendRecvBuffer);
+
+    int actualRequestBufferLength = strlen(sendRecvBuffer);
+    bool status = network_send_receive(hostname, port, sendRecvBuffer, actualRequestBufferLength, sendRecvBuffer, SEND_RECEIVE_BUFFER, &output->outPort);
+
+    output->error = COMPLETION_OUTPUT_ERROR_OK;
+    output->rawData = sendRecvBuffer;
+
+    if(status){
+        //puts(sendRecvBuffer);
+
+        //Find if contains error
+        char * errorPtr = strstr(sendRecvBuffer, "\"error\":");
+
+        if(errorPtr){
+            //Advance to start of message
+            char * messageStartPointer = errorPtr + 9;
+
+            //Locate message termination
+            char * messageEndPointer = strstr(messageStartPointer, "\"}");
+
+            if(messageEndPointer != NULL){
+                int length = messageEndPointer - messageStartPointer;
+                output->error = COMPLETION_OUTPUT_ERROR_CHATGPT;
+                output->content = messageStartPointer;
+                output->contentLength = length;
+            } else {
+                output->error = COMPLETION_OUTPUT_ERROR_APP;
+                output->content = "Error but no error_message ending found";
+                output->contentLength = strlen(output->content);
+            }
+        
+
+        } else {
+            //Search for prompt_tokens key
+            char * prompt_token_ptr = strstr(sendRecvBuffer, "\"prompt_eval_count\":");
+
+            if(prompt_token_ptr){
+                //Jump to number position
+                output->prompt_tokens = strtol(prompt_token_ptr + 20, NULL, 10);
+            }
+
+            char * completion_token_ptr = strstr(sendRecvBuffer, "\"eval_count\":");
+
+            if(completion_token_ptr){
+                //Jump to number position
+                output->completion_tokens = strtol(completion_token_ptr + 13, NULL, 10);
+            }
+
+            char * content_ptr = strstr(sendRecvBuffer, "\"content\":");
+
+            if(content_ptr){
+                //Advance to start of content
+                char * contentStartPointer = content_ptr + 11;
+
+                //Locate message termination
+                char * contentEndPointer = strstr(contentStartPointer, "\"}");
+
+                if(contentEndPointer != NULL){
+                    output->content = contentStartPointer;
+                    output->contentLength = contentEndPointer - contentStartPointer;
+                } else {
+                    output->error = COMPLETION_OUTPUT_ERROR_APP;
+                    output->content = "Cannot find end of content";
+                    output->contentLength = strlen(output->content);
+                }
+            } else {
+                output->error = COMPLETION_OUTPUT_ERROR_APP;
+                output->content = "Cannot find content";
+                output->contentLength = strlen(output->content);
+            }
+        }
+    } else {
+        output->error = COMPLETION_OUTPUT_ERROR_APP;
+        output->content = "Cannot connect to socket or response timeout";
+        output->contentLength = strlen(output->content);
+    }
+
+    if(output->error == COMPLETION_OUTPUT_ERROR_OK){
+        //All is good, we keep the messages
+
+        memset(previousMessage, 0, PREVIOUS_MESSAGE_SIZE);
+        memset(previousGPTReply, 0, PREVIOUS_GPT_REPLY_SIZE);
+
+        memcpy(previousMessage, message, messageLength < PREVIOUS_MESSAGE_SIZE ? messageLength : PREVIOUS_MESSAGE_SIZE);
+        memcpy(previousGPTReply, output->content, output->contentLength < PREVIOUS_GPT_REPLY_SIZE ? output->contentLength : PREVIOUS_GPT_REPLY_SIZE);
+    }
+
+    // if(output->error == 1){
+    //     puts(puts(sendRecvBuffer););
     // }
     
     return status;

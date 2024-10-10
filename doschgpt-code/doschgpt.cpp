@@ -8,13 +8,15 @@
 #include "textio.h"
 #include "sound.h"
 
-#define VERSION "0.17"
+#define VERSION "0.18"
 
 #define DOS_CHATGPT_WELCOME_MSG "Welcome to DOS ChatGPT client"
 #define DOS_HUGGING_FACE_WELCOME_MSG "Welcome to DOS Hugging Face client"
+#define DOS_OLLAMA_WELCOME_MSG "Welcome to DOS Ollama client"
 
 #define DOS_CHATGPT_WELCOME_SND "Welcome to dos Chat G P T client"
 #define DOS_HUGGING_FACE_WELCOME_SND "Welcome to dos Hugging Face client"
+#define DOS_OLLAMA_WELCOME_SND "Welcome to dos Ollama client"
 
 #define GOODBYE_SND "Good bye!"
 
@@ -27,6 +29,8 @@
 #define CONFIG_PATH_SIZE 256
 
 #define MESSAGE_SIZE 5000
+
+enum APIS { CHATGPT, HUGGING_FACE, OLLAMA };
 
 char config_apikey[API_KEY_LENGTH_MAX];
 char config_model[MODEL_LENGTH_MAX];
@@ -50,7 +54,7 @@ bool sound_blaster_tts = false;
 bool configPathGiven = false;
 char configPath[CONFIG_PATH_SIZE];
 
-bool huggingFace = false;
+enum APIS api_selected = CHATGPT;
 
 // Message Request
 #define SIZE_MSG_TO_SEND 4096
@@ -79,10 +83,16 @@ void endFunction(){
     sbtts_end();
   }
 
-  if(huggingFace){
-    printf("Ended DOS Hugging Face client\n");
-  } else {
-    printf("Ended DOS ChatGPT client\n");
+  switch(api_selected){
+    case CHATGPT:
+      printf("Ended DOS ChatGPT client\n");
+      break;
+    case HUGGING_FACE:
+      printf("Ended DOS Hugging Face client\n");
+      break;
+    case OLLAMA:
+      printf("Ended DOS OLLAMA client\n");
+      break;
   }
 }
 
@@ -166,7 +176,7 @@ void escapeThisString(char * source, int sourceSize, char * dest, int destMaxSiz
 }
 
 int main(int argc, char * argv[]){
-  printf("Started DOS ChatGPT/Hugging Face client %s by Yeo Kheng Meng\n", VERSION);
+  printf("Started DOS ChatGPT/Hugging Face/Ollama client %s by Yeo Kheng Meng\n", VERSION);
   printf("Compiled on %s %s\n\n", __DATE__, __TIME__);
 
   // Process command line arguments -dri and -drr
@@ -200,7 +210,9 @@ int main(int argc, char * argv[]){
       //Copy after -c
       memcpy(configPath, arg + 2, strlen(arg) - 2);
     } else if(strstr(arg, "-hf") && strlen(arg) == 3){
-      huggingFace = true;
+      api_selected = HUGGING_FACE;
+    } else if(strstr(arg, "-ol") && strlen(arg) == 3){
+      api_selected = OLLAMA;
     } else if(strstr(arg, "-sbtts") && strlen(arg) == 6){
       sound_blaster_tts = true;
     }
@@ -294,19 +306,30 @@ int main(int argc, char * argv[]){
 
   if(sound_blaster_tts){
 
-    if(huggingFace){
-      sbtts_read_str(DOS_HUGGING_FACE_WELCOME_SND, strlen(DOS_HUGGING_FACE_WELCOME_SND), false);
-    } else {
-      sbtts_read_str(DOS_CHATGPT_WELCOME_SND, strlen(DOS_CHATGPT_WELCOME_SND), false);
+    switch(api_selected){
+      case CHATGPT:
+        sbtts_read_str(DOS_CHATGPT_WELCOME_SND, strlen(DOS_CHATGPT_WELCOME_SND), false);
+        break;
+      case HUGGING_FACE:
+        sbtts_read_str(DOS_HUGGING_FACE_WELCOME_SND, strlen(DOS_HUGGING_FACE_WELCOME_SND), false);
+        break;
+      case OLLAMA:
+        sbtts_read_str(DOS_OLLAMA_WELCOME_SND, strlen(DOS_OLLAMA_WELCOME_SND), false);
+        break;
     }
   }
 
-  if(huggingFace){
-    printf("\n%s (%s). Press ESC to quit.\n", DOS_HUGGING_FACE_WELCOME_MSG, config_model);
-  } else {
-    printf("\n%s (%s). Press ESC to quit.\n", DOS_CHATGPT_WELCOME_MSG, config_model);
+  switch(api_selected){
+    case CHATGPT:
+      printf("\n%s (%s). Press ESC to quit.\n", DOS_CHATGPT_WELCOME_MSG, config_model);
+      break;
+    case HUGGING_FACE:
+      printf("\n%s (%s).\nPress ESC to quit.\n", DOS_HUGGING_FACE_WELCOME_MSG, config_model);
+      break;
+    case OLLAMA:
+      printf("\n%s (%s). Press ESC to quit.\n", DOS_OLLAMA_WELCOME_MSG, config_model);
+      break;
   }
-
 
 
   io_str_newline("Me:");
@@ -345,18 +368,30 @@ int main(int argc, char * argv[]){
         COMPLETION_OUTPUT output;
         memset((void*) &output, 0, sizeof(COMPLETION_OUTPUT));
 
-        if(huggingFace){
-          network_get_huggingface_conversation(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
-        } else {
-          network_get_chatgpt_completion(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
+        switch(api_selected){
+          case CHATGPT:
+            network_get_chatgpt_completion(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
+            break;
+          case HUGGING_FACE:
+            network_get_huggingface_conversation(config_proxy_hostname, config_proxy_port, config_apikey, config_model, messageToSendToNet, config_req_temperature, &output);
+            break;
+          case OLLAMA:
+            network_get_ollama_conversation(config_proxy_hostname, config_proxy_port, config_model, messageToSendToNet, config_req_temperature, &output);
+            break;
         }
 
         if(output.error == COMPLETION_OUTPUT_ERROR_OK){
 
-          if(huggingFace){
-            io_str_newline("\nHugging Face:");
-          } else {
-            io_str_newline("\nChatGPT:");
+          switch(api_selected){
+            case CHATGPT:
+              io_str_newline("\nChatGPT:");
+              break;
+            case HUGGING_FACE:
+              io_str_newline("\nHugging Face:");
+              break;
+            case OLLAMA:
+              io_str_newline("\nOllama:");
+              break;
           }
 
           memset(replyDisplayBuffer, 0, REPLY_DISPLAY_SIZE);
