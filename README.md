@@ -70,9 +70,9 @@ doschgpt.exe -hf -chf.ini -drt
 doschgpt.exe -sbtts -ol -collama.ini
 ```
 
-<img src="images\doschgpt-5155-front-start.jpg" width="500">
+<img src="images\doschgpt-ollama.jpg" width="1000">
 
-Parsed options will be displayed.
+Parsed options will be displayed. Client is running in Ollama mode in this case.
 
 ### Release details
 
