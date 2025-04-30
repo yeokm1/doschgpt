@@ -112,7 +112,7 @@ PTACH.exe doschgpt.exe doschgpt.map -ml
 wmake clean
 ```
 
-This application compiles against the [MTCP library](http://brutmanlabs.org/mTCP/). I have unzipped the latest version [mTCP-src_2023-03-31.zip](http://www.brutman.com/mTCP/download/mTCP-src_2023-03-31.zip) at the time of development to the `mtcpsrc` directory. When Brutman updates this library again in future, simply replace the contents of the `mtcpsrc` directory with the new library.
+This application compiles against the [MTCP library](http://brutmanlabs.org/mTCP/). I have unzipped the latest version [mTCP-src_2025-01-10.zip](https://www.brutman.com/mTCP/download/mTCP-src_2025-01-10.zip) at the time of development to the `mtcpsrc` directory. When Brutman updates this library again in future, simply replace the contents of the `mtcpsrc` directory with the new library.
 
 `PTACH.exe` is a Win NT program compiled from MTCP sources.
 
