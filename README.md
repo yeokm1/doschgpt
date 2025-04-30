@@ -89,7 +89,7 @@ Parsed options will be displayed. Client is running in Ollama mode in this case.
 
 ## Compilation
 
-To compile this application, you have to use Open Watcom 2.0 beta which you can download from [here](https://github.com/open-watcom/open-watcom-v2/releases/tag/2024-10-03-Build). Open Watcom 2.0 for 64-bit Windows which was released on 2024-10-03 03:16:39 UTC is used. The v1.9 version seems to create binaries with issues on some platforms.
+To compile this application, you have to use Open Watcom 2.0 beta which you can download from [here](https://github.com/open-watcom/open-watcom-v2/releases/tag/2025-04-01-Build). Open Watcom 2.0 for 64-bit Windows which was released on 2025-04-01 is used. The v1.9 version seems to create binaries with issues on some platforms.
 
 During installation, Open Watcom may prompt to install the environment variables. I chose to not do that to avoid having those variables being permanent. Instead I use a batch file to set the variables whenever I need to compile.
 
@@ -99,11 +99,8 @@ The program is compiled via a Makefile that is referenced from MTCP.
 # Open cmd.exe
 cd doschgpt-code
 
-# If using Open Watcom v2.0 beta installed to C:\WATCOM2
-20setenv.bat
-
-# If using Open Watcom v1.9 installed to C:\WATCOM (Not recommended)
-19setenv.bat
+# If using Open Watcom v2.0 beta installed to C:\WATCOM
+setenv.bat
 
 # To compile
 wmake
