@@ -35,7 +35,7 @@ typedef struct
 typedef void (*EndCallback)(void);
 
 // Init MTCP network stack and setup other variables
-bool network_init(uint16_t startPort, uint16_t endPort, EndCallback endCall, uint16_t socketConnectTimeout, uint16_t socketResponseTimeout);
+bool network_init(uint16_t startPort, uint16_t endPort, EndCallback endCall, uint16_t socketConnectTimeout, uint32_t socketResponseTimeout);
 
 // Stop MTCP network before shutting down
 void network_stop();

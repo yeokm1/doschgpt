@@ -1,4 +1,8 @@
 # Change Log
+* v0.19 (3 May 2025):
+* * Compiled with Open Watcom 2.0 Beta (2025-04-01 build)
+* * Updated to use MTCP 2025-01-10
+* * Change variable holding socket response time out to uint32_t to allow larger values
 * v0.18 (11 Oct 2024):
 * * Added support for Ollama servers. (No HTTPS proxy is required as Ollama uses unencrypted HTTP.)
 * v0.17 (5 Oct 2024):

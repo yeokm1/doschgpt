@@ -45,7 +45,7 @@ char * previousTempMessage = NULL;
 uint16_t startingPort;
 uint16_t endingPort;
 uint16_t network_socketConnectTimeout;
-uint16_t network_socketResponseTimeout;
+uint32_t network_socketResponseTimeout;
 
 // Only one socket is used in this app
 TcpSocket *mySocket = NULL;
@@ -64,7 +64,7 @@ void __interrupt __far ctrlCHandler( ) {
   // Do Nothing - Ctrl-C is a legal character
 }
 
-bool network_init(uint16_t startPort, uint16_t endPort, EndCallback endCall, uint16_t socketConnectTimeout, uint16_t socketResponseTimeout){
+bool network_init(uint16_t startPort, uint16_t endPort, EndCallback endCall, uint16_t socketConnectTimeout, uint32_t socketResponseTimeout){
 
     // Setup mTCP environment
     if(Utils::parseEnv()){
