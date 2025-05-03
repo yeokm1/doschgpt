@@ -40,7 +40,7 @@ int config_proxy_port;
 uint16_t config_outgoing_start_port;
 uint16_t config_outgoing_end_port;
 uint16_t config_socketConnectTimeout;
-uint16_t config_socketResponseTimeout;
+uint32_t config_socketResponseTimeout;
 
 // Command Line Configuration
 bool debug_showRequestInfo = false;
@@ -232,7 +232,7 @@ int main(int argc, char * argv[]){
     printf("Request temperature: %0.1f\n", config_req_temperature);
     printf("Proxy hostname,port: %s:%d\n", config_proxy_hostname, config_proxy_port);
     printf("Outgoing start port: %u, end port: %u\n", config_outgoing_start_port, config_outgoing_end_port);
-    printf("Socket connect timeout: %u ms, response timeout: %u ms\n", config_socketConnectTimeout, config_socketResponseTimeout);
+    printf("Socket connect timeout: %u ms, response timeout: %lu ms\n", config_socketConnectTimeout, config_socketResponseTimeout);
     printf("Show request info -dri: %d, raw reply -drr: %d, timestamps -drt: %d\n", debug_showRequestInfo, debug_showRawReply, debug_showTimeStamp);
     printf("Code page -cpXXX: %d\n", codePageInUse);
     printf("Config Path -cX: %s\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
