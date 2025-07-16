@@ -240,10 +240,36 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
         return false;
     }
 
-    int16_t bytesSent = mySocket->send((unsigned char *) to_send, to_send_size);
-    memset(to_receive, 0, to_receive_size);
+    uint16_t bytesSent = 0;
 
-    if(bytesSent == to_send_size){
+    // Section referenced from Brutman's Telnet.cpp
+    while (bytesSent < to_send_size) {
+
+        int16_t bytesToSendRemaining = to_send_size - bytesSent;
+
+        int16_t bytesSentThisTime = mySocket->send((unsigned char *) to_send + bytesSent, bytesToSendRemaining);
+
+        if(bytesSentThisTime < 0){
+            fprintf(stderr, "Error sending %d bytes, socket error code %d\n", to_send_size, bytesSentThisTime);
+            status = false;
+            break;
+        }
+
+        bytesSent += bytesSentThisTime;
+
+        // Buffer must be backlogged, drive packets to clear the backlog
+        if (bytesSentThisTime == 0){
+            network_drivePackets();
+        }
+
+        // if(bytesSentThisTime != bytesToSendRemaining){
+        //     fprintf(stderr, "Did not send %d bytes, only sent %d\n", bytesToSendRemaining, bytesSentThisTime);
+        // }
+
+    }
+
+    if(bytesSent >= to_send_size){
+        memset(to_receive, 0, to_receive_size);
         //fprintf(stderr, "Waiting for data\n");
         int bytesReceivedThisInstant = 0;
 
@@ -290,7 +316,7 @@ bool network_send_receive(char * hostname, int port, char * to_send, int to_send
         }
         
     } else {
-        fprintf(stderr, "Did not send required %d bytes\n", to_send_size);
+        fprintf(stderr, "Did not send required %d bytes, only sent %d bytes\n", to_send_size, bytesSent);
         status = false;
     }
 
