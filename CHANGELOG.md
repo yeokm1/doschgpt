@@ -1,4 +1,7 @@
 # Change Log
+* v0.20 (16 July 2025):
+* * Compiled with Open Watcom 2.0 Beta (2025-07-01 build)
+* * (Bugfix) To continue sending the rest of a network request if only a part of it was sent initially
 * v0.19 (3 May 2025):
 * * Compiled with Open Watcom 2.0 Beta (2025-04-01 build)
 * * Updated to use MTCP 2025-01-10
