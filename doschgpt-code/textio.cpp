@@ -2,6 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include <dos.h>
+#include <stdlib.h>
 #include "textio.h"
 
 
@@ -13,17 +14,31 @@ char timestampStr[TIMESTAMP_SIZE];
 
 FILE *historyFile = NULL;
 
-static int io_vprintf(const char *fmt, va_list ap) {
-    int result = vprintf(fmt, ap);
-    return result;
-}
+static void sb_push_line(const char* s);
+
 
 int io_printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    int r = io_vprintf(fmt, ap);
+    char temp[90];
+    vsnprintf(temp, sizeof(temp), fmt, ap);
+    int result = printf("%s", temp);
     va_end(ap);
-    return r;
+
+    sb_push_line(temp);
+    fflush(stdout);
+    return result;
+}
+
+int io_printf_do_not_store(const char *fmt, ...){
+    va_list ap;
+    va_start(ap, fmt);
+    char temp[90];
+    vsnprintf(temp, sizeof(temp), fmt, ap);
+    int result = printf("%s", temp);
+    va_end(ap);
+    fflush(stdout);
+    return result;
 }
 
 void updateTimeStamp(){
@@ -184,7 +199,7 @@ void io_close_history_file(){
     }
 }
 
-void io_clear_screen(void) {
+void io_clear_screen() {
     union REGS in, out;
 
     fflush(stdout);
@@ -224,3 +239,100 @@ void io_clear_screen(void) {
 
     fflush(stdout);
 }
+
+static char **sb_lines        = NULL;  // ring of pointers to lines
+static int    sb_capacity     = 0;     // total lines in ring
+static int    sb_max_line_len = 0;     // max chars per stored line (soft cap)
+static int    sb_head         = 0;     // next write index
+static long   sb_view_top     = 0;     // absolute line index shown at top
+static int    sb_rows         = 25; // visible rows; keep simple
+static int    sb_cols         = 80;    // cache columns for wrapping
+static int    sb_follow       = 1;     // follow newest if 1
+static long   sb_count        = 0;     // total lines ever stored
+
+void io_scrollback_init(int max_lines, int max_line_len){
+
+    sb_cols = getScreenColumns();
+
+    sb_capacity     = max_lines;
+    sb_max_line_len = max_line_len;
+    sb_lines = (char**) calloc(sb_capacity, sizeof(char*));
+    for(int i=0; i<sb_capacity; i++){
+        sb_lines[i] = (char*) calloc(sb_max_line_len, 1);
+    }
+    sb_head     = 0;
+    sb_view_top = 0;
+    sb_follow   = 1; // start following
+}
+
+void io_scrollback_free(){
+    if(!sb_lines) return;
+    for(int i=0;i<sb_capacity;i++){
+        free(sb_lines[i]);
+    }
+    free(sb_lines);
+    sb_lines = NULL;
+    sb_capacity = 0;
+}
+
+static void sb_push_line(const char* s){
+    if(!sb_lines) return;
+    int len = strlen(s);
+
+    // Clip long lines
+    if(len >= sb_max_line_len) len = sb_max_line_len - 1;
+
+    memset(sb_lines[sb_head], 0, sb_max_line_len);
+    memcpy(sb_lines[sb_head], s, len);
+
+    sb_head = (sb_head + 1) % sb_capacity;
+    sb_count++;
+
+    //printf("%d", sb_head);
+    
+
+    // // If we were following, keep view pinned to last page
+    // if(sb_follow){
+    //     long new_top = (sb_count > sb_rows) ? (sb_count - sb_rows) : 0;
+    //     sb_view_top = new_top;
+    // }
+}
+
+// static void sb_redraw(){
+//     if(!sb_lines) return;
+//     io_clear_screen();
+//     //get_screen_dims();
+
+//     long total = sb_count;
+//     long top   = sb_view_top;
+//     if(top < 0) top = 0;
+//     if(top > total) top = total;
+
+//     // Print exactly sb_rows lines (or as many as exist)
+//     for(int row=0; row<sb_rows; row++){
+//         long abs_idx = top + row;
+//         if(abs_idx >= total){
+//             io_printf("\n");
+//         } else {
+//             // Map absolute index -> ring index
+//             long first_abs = (total > sb_capacity) ? (total - sb_capacity) : 0;
+//             long offset    = abs_idx - first_abs;
+//             if(offset < 0 || offset >= sb_capacity){
+//                 io_printf("\n");
+//             } else {
+//                 int idx = ( (offset + ( (sb_head - (total - first_abs)) + sb_capacity ) ) % sb_capacity );
+//                 io_printf("%.*s\n", sb_cols, sb_lines[idx]);
+//             }
+//         }
+//     }
+// }
+
+// void io_scrollback_scroll(int delta){
+//     if(!sb_lines) return;
+//     sb_follow = 0;
+//     sb_view_top += delta;
+//     if(sb_view_top < 0) sb_view_top = 0;
+//     long max_top = (sb_count > sb_rows) ? (sb_count - sb_rows) : 0;
+//     if(sb_view_top > max_top) sb_view_top = max_top, sb_follow = 1;
+//     sb_redraw();
+// }

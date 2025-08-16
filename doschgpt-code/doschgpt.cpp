@@ -7,6 +7,7 @@
 #include "utf2cp.h"
 #include "textio.h"
 #include "sound.h"
+#include "conio.h"
 
 #define VERSION "0.21a"
 
@@ -29,6 +30,9 @@
 #define CONFIG_PATH_SIZE 256
 
 #define MESSAGE_SIZE 5000
+
+#define UI_HIST_LINES_MAX 100
+#define UI_HIST_LINE_LENGTH_MAX 81
 
 enum APIS { CHATGPT, HUGGING_FACE, OLLAMA };
 
@@ -94,6 +98,8 @@ void endFunction(){
       io_printf("Ended DOS OLLAMA client\n");
       break;
   }
+
+  io_scrollback_free();
 }
 
 // When network received a Break
@@ -178,6 +184,9 @@ void escapeThisString(char * source, int sourceSize, char * dest, int destMaxSiz
 int main(int argc, char * argv[]){
 
   io_clear_screen();
+  io_scrollback_init(UI_HIST_LINES_MAX, UI_HIST_LINE_LENGTH_MAX);
+
+
   io_printf("Started DOS ChatGPT/Hugging Face/Ollama client %s by Yeo Kheng Meng\n", VERSION);
   io_printf("Compiled on %s %s\n\n", __DATE__, __TIME__);
 
@@ -341,8 +350,20 @@ int main(int argc, char * argv[]){
   while(inProgress){
 
     // Detect if key is pressed
-    if ( _bios_keybrd(_KEYBRD_READY) ) {
-      char character = _bios_keybrd(_KEYBRD_READ);
+    if (kbhit()) {
+      int character = getch();
+
+      if (character == 0 || character == 0xE0){
+        int scan = getch();
+
+        switch (scan) {
+            case 0x48: continue; // Up
+            case 0x50: continue; // Down
+            case 0x49: continue; // PgUp (page up = older)
+            case 0x51: continue; // PgDn (towards bottom)
+        }
+
+      }
 
       // Detect ESC key for quit
       if(character == 27){
@@ -464,25 +485,23 @@ int main(int argc, char * argv[]){
       } else if((character >= ' ') && (character <= '~')){
 
         if(currentMessagePos >= SIZE_MESSAGE_IN_BUFFER){
-          io_printf("Reach buffer max\n");
+          io_printf_do_not_store("Reach buffer max\n");
           continue;
         }
 
         messageInBuffer[currentMessagePos] = character;
         currentMessagePos++;
-        io_printf("%c", character);
-        fflush(stdout);
+        io_printf_do_not_store("%c", character);
 
       //Backspace character
       } else if(character == 8){
 
         if(currentMessagePos > 0){
           // Remove previous character
-          io_printf("%s", "\b \b");
+          io_printf_do_not_store("%s", "\b \b");
           currentMessagePos--;
           messageInBuffer[currentMessagePos] = '\0';
 
-          fflush(stdout);
         }
 
 

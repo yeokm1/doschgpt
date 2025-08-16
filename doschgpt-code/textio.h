@@ -1,6 +1,7 @@
 #include <stdarg.h> 
 
 int io_printf(const char *fmt, ...);
+int io_printf_do_not_store(const char *fmt, ...);
 void io_timestamp();
 void io_app_error(char * str, int length);
 void io_server_error(char * str, int length);
@@ -13,3 +14,8 @@ bool io_open_history_file(char * filePath);
 void io_close_history_file();
 
 void io_clear_screen();
+
+
+void io_scrollback_init(int max_lines, int max_line_len);
+
+void io_scrollback_free();
