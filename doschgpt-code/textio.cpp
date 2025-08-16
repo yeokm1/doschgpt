@@ -2,6 +2,8 @@
 #include <time.h>
 #include <string.h>
 #include <dos.h>
+#include "textio.h"
+
 
 #define TIMESTAMP_FORMAT "%Y-%m-%d %H:%M:%S"
 
@@ -10,6 +12,19 @@
 char timestampStr[TIMESTAMP_SIZE];
 
 FILE *historyFile = NULL;
+
+static int io_vprintf(const char *fmt, va_list ap) {
+    int result = vprintf(fmt, ap);
+    return result;
+}
+
+int io_printf(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    int r = io_vprintf(fmt, ap);
+    va_end(ap);
+    return r;
+}
 
 void updateTimeStamp(){
     time_t currentTime;
@@ -38,7 +53,7 @@ void io_timestamp(){
     updateTimeStamp();
 
     #define TIMESTAMP_PRINT_FORMAT "[%s]\n"
-    printf(TIMESTAMP_PRINT_FORMAT, timestampStr);
+    io_printf(TIMESTAMP_PRINT_FORMAT, timestampStr);
 
     if(historyFile){
         fprintf(historyFile, TIMESTAMP_PRINT_FORMAT, timestampStr);
@@ -49,7 +64,7 @@ void io_timestamp(){
 void io_app_error(char * str, int length){
 
     #define APP_ERROR_FORMAT "App Error:\n%.*s\n"
-    printf(APP_ERROR_FORMAT, length, str);
+    io_printf(APP_ERROR_FORMAT, length, str);
 
     if(historyFile){
         fprintf(historyFile, APP_ERROR_FORMAT, length, str);
@@ -58,7 +73,7 @@ void io_app_error(char * str, int length){
 
 void io_server_error(char * str, int length){
     #define GPT_ERROR_FORMAT "Server Error:\n%.*s\n"
-    printf(GPT_ERROR_FORMAT, length, str);
+    io_printf(GPT_ERROR_FORMAT, length, str);
 
     if(historyFile){
         fprintf(historyFile, GPT_ERROR_FORMAT, length, str);
@@ -82,7 +97,7 @@ void io_str_newline(char * str){
 
         // Find and print the last chunk
         if((charactersRemaining) <= columns){
-            printf("%.*s", charactersRemaining, str + startPos);
+            io_printf("%.*s", charactersRemaining, str + startPos);
             break;
         }
 
@@ -111,15 +126,15 @@ void io_str_newline(char * str){
 
         int lengthToPrint = endPosOfCurrentString - startPos;
 
-        printf("%.*s\n", lengthToPrint, str + startPos);
+        io_printf("%.*s\n", lengthToPrint, str + startPos);
 
         startPos = endPosOfCurrentString + 1;
     }
 
-    printf("\n");
+    io_printf("\n");
 
 
-    //printf("%s\n", str);
+    //io_printf("%s\n", str);
 
     //This part writes the non-wrapped portion to file.
     if(historyFile){
@@ -134,7 +149,7 @@ void io_write_str_no_print(char * str, int length){
 }
 
 void io_char(char c){
-    printf("%c", c);
+    io_printf("%c", c);
 
     if(historyFile){
         fprintf(historyFile, "%c", c);
@@ -145,7 +160,7 @@ void io_request_info(unsigned int port, int promptTokens, int completionTokens){
 
     #define INFO_FORMAT "[Outgoing port %u, %d prompt tokens, %d completion tokens]\n"
 
-    printf(INFO_FORMAT, port, promptTokens, completionTokens);
+    io_printf(INFO_FORMAT, port, promptTokens, completionTokens);
 
     if(historyFile){
         fprintf(historyFile, INFO_FORMAT, port, promptTokens, completionTokens);
@@ -168,5 +183,3 @@ void io_close_history_file(){
         historyFile = NULL;
     }
 }
-
-

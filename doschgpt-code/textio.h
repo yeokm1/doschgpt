@@ -1,3 +1,6 @@
+#include <stdarg.h> 
+
+int io_printf(const char *fmt, ...);
 void io_timestamp();
 void io_app_error(char * str, int length);
 void io_server_error(char * str, int length);
