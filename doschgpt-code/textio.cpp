@@ -21,11 +21,22 @@ int io_printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     char temp[90];
-    vsnprintf(temp, sizeof(temp), fmt, ap);
-    int result = printf("%s", temp);
-    va_end(ap);
 
-    sb_push_line(temp);
+    vsnprintf(temp, sizeof(temp), fmt, ap);
+    
+    int result = printf("%s", temp);
+
+    int length_of_string = strlen(temp);
+
+    if(temp[length_of_string - 1] == '\n'){
+        //Remove trailing newline
+        temp[length_of_string - 1] = '\0';
+        sb_push_line(temp);
+    }
+
+
+    va_end(ap);
+    
     fflush(stdout);
     return result;
 }

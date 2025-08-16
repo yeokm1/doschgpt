@@ -188,7 +188,8 @@ int main(int argc, char * argv[]){
 
 
   io_printf("Started DOS ChatGPT/Hugging Face/Ollama client %s by Yeo Kheng Meng\n", VERSION);
-  io_printf("Compiled on %s %s\n\n", __DATE__, __TIME__);
+  io_printf("Compiled on %s %s\n", __DATE__, __TIME__);
+  io_printf("\n");
 
   // Process command line arguments -dri and -drr
   for(int i = 0; i < argc; i++){
@@ -332,16 +333,21 @@ int main(int argc, char * argv[]){
 
   switch(api_selected){
     case CHATGPT:
-      io_printf("\n%s (%s). Press ESC to quit.\n", DOS_CHATGPT_WELCOME_MSG, config_model);
+      io_printf("\n");
+      io_printf("%s (%s).\n", DOS_CHATGPT_WELCOME_MSG, config_model);
       break;
     case HUGGING_FACE:
-      io_printf("\n%s (%s).\nPress ESC to quit.\n", DOS_HUGGING_FACE_WELCOME_MSG, config_model);
+      io_printf("\n");
+      io_printf("%s (%s).\n", DOS_HUGGING_FACE_WELCOME_MSG, config_model);
       break;
     case OLLAMA:
-      io_printf("\n%s (%s). Press ESC to quit.\n", DOS_OLLAMA_WELCOME_MSG, config_model);
+      io_printf("\n");
+      io_printf("%s (%s).\n", DOS_OLLAMA_WELCOME_MSG, config_model);
       break;
   }
 
+  io_printf("Press ESC to quit, (Page) Up/Down to scroll.\n");
+  io_printf("\n");
 
   io_str_newline("Me:");
 
