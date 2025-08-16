@@ -11,3 +11,5 @@ void io_request_info(unsigned int port, int promptTokens, int completionTokens);
 
 bool io_open_history_file(char * filePath);
 void io_close_history_file();
+
+void io_clear_screen();

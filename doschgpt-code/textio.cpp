@@ -183,3 +183,44 @@ void io_close_history_file(){
         historyFile = NULL;
     }
 }
+
+void io_clear_screen(void) {
+    union REGS in, out;
+
+    fflush(stdout);
+
+    // Get columns and active page (works everywhere)
+    in.x.ax = 0x0F00;               // AH=0Fh: get video mode; AH=cols, BH=page
+    int86(0x10, &in, &out);
+    unsigned char cols = getScreenColumns();
+    unsigned char page = out.h.bh;
+
+    // Rows: assume 25 (safe for MDA/CGA). If EGA/VGA sets BDA rows-1 at 0x40:0x0084, use it.
+    unsigned char rows = 25;
+#ifndef __386__  // far pointers are only valid in real-mode small/medium models
+    {
+        volatile unsigned char far* bda_rowsm1 = (unsigned char far*)MK_FP(0x40, 0x84);
+        unsigned char v = *bda_rowsm1;
+        if (v) rows = (unsigned char)(v + 1);
+    }
+#endif
+
+    // Clear entire window via AH=06h. Use a fixed attribute (0x07) to avoid AH=08h.
+    in.h.ah = 0x06;   // scroll up / clear
+    in.h.al = 0x00;   // clear window
+    in.h.bh = 0x07;   // fill attribute: white on black
+    in.h.ch = 0x00;   // upper-left row
+    in.h.cl = 0x00;   // upper-left col
+    in.h.dh = (rows ? rows - 1 : 24);            // lower-right row
+    in.h.dl = (cols ? cols - 1 : 79);            // lower-right col
+    int86(0x10, &in, &out);
+
+    // Home the cursor on the active page
+    in.h.ah = 0x02;   // set cursor position
+    in.h.bh = page;
+    in.h.dh = 0;
+    in.h.dl = 0;
+    int86(0x10, &in, &out);
+
+    fflush(stdout);
+}

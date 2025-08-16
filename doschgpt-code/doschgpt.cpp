@@ -176,6 +176,8 @@ void escapeThisString(char * source, int sourceSize, char * dest, int destMaxSiz
 }
 
 int main(int argc, char * argv[]){
+
+  io_clear_screen();
   io_printf("Started DOS ChatGPT/Hugging Face/Ollama client %s by Yeo Kheng Meng\n", VERSION);
   io_printf("Compiled on %s %s\n\n", __DATE__, __TIME__);
 
