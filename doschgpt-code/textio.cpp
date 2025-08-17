@@ -3,7 +3,9 @@
 #include <string.h>
 #include <dos.h>
 #include <stdlib.h>
+#include <i86.h>
 #include "textio.h"
+
 
 
 #define TIMESTAMP_FORMAT "%Y-%m-%d %H:%M:%S"
@@ -14,31 +16,62 @@ char timestampStr[TIMESTAMP_SIZE];
 
 FILE *historyFile = NULL;
 
+#define BIOS_INT  int86
+#define REGS_T    union REGS
+
+static void dbg_serial_init_9600_8N1(void){
+    REGS_T r = {0};
+    r.h.ah = 0x00;       // Initialize
+    r.h.al = 0xE3;       // 9600 baud, 8N1 (BIOS bitfield: 1110 0011)
+    r.x.dx = 0;          // COM1
+    BIOS_INT(0x14, &r, &r);
+}
+static void dbg_serial_putc(char ch){
+    REGS_T r = {0};
+    r.h.ah = 0x01; r.h.al = (unsigned char)ch; r.x.dx = 0; BIOS_INT(0x14,&r,&r);
+}
+
+static void dbg_serial_printf(const char* fmt, ...){
+    va_list ap;
+    va_start(ap, fmt);
+    char temp[160];
+
+    vsnprintf(temp, sizeof(temp), fmt, ap);
+
+    char * temp_ptr = temp;
+
+    while(*temp_ptr) dbg_serial_putc(*temp_ptr++);
+    dbg_serial_putc('\r'); dbg_serial_putc('\n');
+
+    va_end(ap);
+}
+
+
+
+
 static void sb_push_line(const char* s);
 
 
 int io_printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    char temp[90];
+    char temp[160];
 
     vsnprintf(temp, sizeof(temp), fmt, ap);
-    
-    int result = printf("%s", temp);
 
     int length_of_string = strlen(temp);
 
     if(temp[length_of_string - 1] == '\n'){
         //Remove trailing newline
         temp[length_of_string - 1] = '\0';
-        sb_push_line(temp);
     }
 
+    sb_push_line(temp);
 
     va_end(ap);
     
     fflush(stdout);
-    return result;
+    return 0;
 }
 
 int io_printf_do_not_store(const char *fmt, ...){
@@ -106,7 +139,7 @@ void io_server_error(char * str, int length){
     }
 }
 
-void io_str_newline(char * str){
+void io_str(char * str){
 
     //First part of this function will do word wrapping
 
@@ -157,7 +190,7 @@ void io_str_newline(char * str){
         startPos = endPosOfCurrentString + 1;
     }
 
-    io_printf("\n");
+    //io_printf("\n");
 
 
     //io_printf("%s\n", str);
@@ -255,10 +288,10 @@ static char **sb_lines        = NULL;  // ring of pointers to lines
 static int    sb_capacity     = 0;     // total lines in ring
 static int    sb_max_line_len = 0;     // max chars per stored line (soft cap)
 static int    sb_head         = 0;     // next write index
-static long   sb_view_top     = 0;     // absolute line index shown at top
-static int    sb_rows         = 25; // visible rows; keep simple
+static long   sb_view_delta   = 0;
+static int    sb_rows         = 25 - 2; // visible rows; keep simple
 static int    sb_cols         = 80;    // cache columns for wrapping
-static int    sb_follow       = 1;     // follow newest if 1
+// static int    sb_follow       = 1;     // follow newest if 1
 static long   sb_count        = 0;     // total lines ever stored
 
 void io_scrollback_init(int max_lines, int max_line_len){
@@ -272,8 +305,8 @@ void io_scrollback_init(int max_lines, int max_line_len){
         sb_lines[i] = (char*) calloc(sb_max_line_len, 1);
     }
     sb_head     = 0;
-    sb_view_top = 0;
-    sb_follow   = 1; // start following
+    sb_view_delta = 0;
+    // sb_follow   = 1; // start following
 }
 
 void io_scrollback_free(){
@@ -286,6 +319,15 @@ void io_scrollback_free(){
     sb_capacity = 0;
 }
 
+
+
+// Optional: if you already have these, you can reuse them.
+static void set_cursor_rc(unsigned char row, unsigned char col){
+    REGS_T r = {0};
+    r.h.ah = 0x02; r.h.bh = 0; r.h.dh = row; r.h.dl = col;
+    BIOS_INT(0x10, &r, &r);
+}
+
 static void sb_push_line(const char* s){
     if(!sb_lines) return;
     int len = strlen(s);
@@ -296,54 +338,107 @@ static void sb_push_line(const char* s){
     memset(sb_lines[sb_head], 0, sb_max_line_len);
     memcpy(sb_lines[sb_head], s, len);
 
+
     sb_head = (sb_head + 1) % sb_capacity;
+
+    sb_view_delta = 0;
     sb_count++;
 
-    //printf("%d", sb_head);
-    
+    dbg_serial_printf("sb_count %d", sb_count);
+    dbg_serial_printf("sb head %d",  sb_head);
 
-    // // If we were following, keep view pinned to last page
-    // if(sb_follow){
-    //     long new_top = (sb_count > sb_rows) ? (sb_count - sb_rows) : 0;
-    //     sb_view_top = new_top;
-    // }
+    //TODO: Make extra long lines into second line
+
 }
 
-// static void sb_redraw(){
-//     if(!sb_lines) return;
-//     io_clear_screen();
-//     //get_screen_dims();
+// Helper: positive modulo for ring indices
+static inline int wrap_idx(int x, int m){
+    int r = x % m;
+    return (r < 0) ? (r + m) : r;
+}
 
-//     long total = sb_count;
-//     long top   = sb_view_top;
-//     if(top < 0) top = 0;
-//     if(top > total) top = total;
+void io_scrollback_refresh(){
+    if (!sb_lines) return;
 
-//     // Print exactly sb_rows lines (or as many as exist)
-//     for(int row=0; row<sb_rows; row++){
-//         long abs_idx = top + row;
-//         if(abs_idx >= total){
-//             io_printf("\n");
-//         } else {
-//             // Map absolute index -> ring index
-//             long first_abs = (total > sb_capacity) ? (total - sb_capacity) : 0;
-//             long offset    = abs_idx - first_abs;
-//             if(offset < 0 || offset >= sb_capacity){
-//                 io_printf("\n");
-//             } else {
-//                 int idx = ( (offset + ( (sb_head - (total - first_abs)) + sb_capacity ) ) % sb_capacity );
-//                 io_printf("%.*s\n", sb_cols, sb_lines[idx]);
-//             }
-//         }
-//     }
-// }
+    io_clear_screen();               // clear everything
+    // sb_cols = getScreenColumns(); // if you want to re-read width here
 
-// void io_scrollback_scroll(int delta){
-//     if(!sb_lines) return;
-//     sb_follow = 0;
-//     sb_view_top += delta;
-//     if(sb_view_top < 0) sb_view_top = 0;
-//     long max_top = (sb_count > sb_rows) ? (sb_count - sb_rows) : 0;
-//     if(sb_view_top > max_top) sb_view_top = max_top, sb_follow = 1;
-//     sb_redraw();
-// }
+    // How many lines are currently retained in the ring?
+    long kept = (sb_count < sb_capacity) ? sb_count : sb_capacity;
+
+    // How many rows we will actually paint
+    int rows_to_print = (kept < sb_rows) ? (int)kept : sb_rows;
+
+    if (rows_to_print > 0) {
+        // Index of the newest line in the ring
+        // (sb_head is the NEXT write slot, so newest is sb_head-1)
+        int newest = wrap_idx(sb_head - 1, sb_capacity);
+
+        // sb_view_delta: 0 = bottom (end at newest), -k = scrolled up by k lines
+        int last_vis = wrap_idx(newest + sb_view_delta, sb_capacity);
+
+        // First visible index is last_vis - (rows_to_print - 1)
+        int first_vis = wrap_idx(last_vis - (rows_to_print - 1), sb_capacity);
+
+        // Paint exactly rows_to_print lines from first_vis forward
+        int idx = first_vis;
+        for (int row = 0; row < rows_to_print; ++row) {
+            // truncate to sb_cols if needed
+            int n = 0; while (sb_lines[idx][n] && n < sb_cols) n++;
+            fwrite(sb_lines[idx], 1, n, stdout);
+            fputc('\n', stdout);
+
+            idx++; if (idx == sb_capacity) idx = 0;
+        }
+    }
+
+    // Fill any remaining history rows with blank lines so the input sits
+    // exactly after the history area
+    for (int row = rows_to_print; row < sb_rows; ++row) {
+        fputc('\n', stdout);
+    }
+
+    // Fixed input prompt at the bottom of the history area
+    fputs("Me:\n", stdout);
+    fflush(stdout);
+}
+
+void io_scrollback_scroll(int delta){
+    if (!sb_lines) return;
+
+    // how many lines exist in the ring right now?
+    long kept = (sb_count < sb_capacity) ? sb_count : sb_capacity;
+
+    // nothing to scroll if we don't fill at least one screen
+    if (kept <= sb_rows) {
+        dbg_serial_printf("scroll: kept=%ld <= rows=%d; no-op", kept, sb_rows);
+        return;
+    }
+
+    // desired new delta (relative to bottom)
+    long new_delta = (long)sb_view_delta + (long)delta;
+
+    // bottom clamp (can't go below bottom)
+    if (new_delta > 0) new_delta = 0;
+
+    // top clamp: max lines we can scroll up is kept - sb_rows
+    long min_delta = - ( (long)kept - (long)sb_rows ); // negative or zero
+    if (min_delta > 0) min_delta = 0;                  // safety (shouldn't happen)
+
+    if (new_delta < min_delta) new_delta = min_delta;
+
+    dbg_serial_printf("scroll: kept=%ld rows=%d old=%d delta=%d -> new=%ld (min=%ld)\r\n",
+                      kept, sb_rows, sb_view_delta, delta, new_delta, min_delta);
+
+    sb_view_delta = (int)new_delta;
+    io_scrollback_refresh();
+}
+
+void io_scrollback_reset_view_bottom(){
+    if(!sb_lines) return;
+
+    sb_view_delta = 0;
+
+    io_scrollback_refresh();
+}
+

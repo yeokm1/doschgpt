@@ -31,7 +31,7 @@
 
 #define MESSAGE_SIZE 5000
 
-#define UI_HIST_LINES_MAX 100
+#define UI_HIST_LINES_MAX 35
 #define UI_HIST_LINE_LENGTH_MAX 81
 
 enum APIS { CHATGPT, HUGGING_FACE, OLLAMA };
@@ -89,13 +89,13 @@ void endFunction(){
 
   switch(api_selected){
     case CHATGPT:
-      io_printf("Ended DOS ChatGPT client\n");
+      io_printf_do_not_store("Ended DOS ChatGPT client\n");
       break;
     case HUGGING_FACE:
-      io_printf("Ended DOS Hugging Face client\n");
+      io_printf_do_not_store("Ended DOS Hugging Face client\n");
       break;
     case OLLAMA:
-      io_printf("Ended DOS OLLAMA client\n");
+      io_printf_do_not_store("Ended DOS OLLAMA client\n");
       break;
   }
 
@@ -349,7 +349,7 @@ int main(int argc, char * argv[]){
   io_printf("Press ESC to quit, (Page) Up/Down to scroll.\n");
   io_printf("\n");
 
-  io_str_newline("Me:");
+  io_scrollback_refresh();
 
   int currentMessagePos = 0;
 
@@ -363,10 +363,10 @@ int main(int argc, char * argv[]){
         int scan = getch();
 
         switch (scan) {
-            case 0x48: continue; // Up
-            case 0x50: continue; // Down
-            case 0x49: continue; // PgUp (page up = older)
-            case 0x51: continue; // PgDn (towards bottom)
+            case 0x48: io_scrollback_scroll(-1); continue; // Up
+            case 0x50: io_scrollback_scroll(1); continue; // Down
+            case 0x49: io_scrollback_scroll(-10); continue; // PgUp (page up = older)
+            case 0x51: io_scrollback_scroll(10); continue; // PgDn (towards bottom)
         }
 
       }
@@ -385,12 +385,23 @@ int main(int argc, char * argv[]){
           continue;
         }
 
-        io_write_str_no_print(messageInBuffer, currentMessagePos);
+        io_printf("Me:\n");
 
-        io_char('\n');
+        //Mark the message end
+        //messageInBuffer[currentMessagePos] = '\0';
+        io_printf(messageInBuffer);
         if(debug_showTimeStamp){
           io_timestamp();
         }
+
+        io_printf("\n");
+
+        io_scrollback_refresh();
+        io_printf_do_not_store("Processing...\n");
+
+
+        //io_char('\n');
+
 
         escapeThisString(messageInBuffer, currentMessagePos, messageToSendToNet, SIZE_MSG_TO_SEND);
 
@@ -409,19 +420,22 @@ int main(int argc, char * argv[]){
             break;
         }
 
+        //io_char('\n');
+
         if(output.error == COMPLETION_OUTPUT_ERROR_OK){
 
           switch(api_selected){
             case CHATGPT:
-              io_str_newline("\nChatGPT:");
+              io_printf("ChatGPT:");
               break;
             case HUGGING_FACE:
-              io_str_newline("\nHugging Face:");
+              io_printf("Hugging Face:");
               break;
             case OLLAMA:
-              io_str_newline("\nOllama:");
+              io_printf("Ollama:");
               break;
           }
+
 
           memset(replyDisplayBuffer, 0, REPLY_DISPLAY_SIZE);
           replyDisplayPos = 0;
@@ -458,7 +472,7 @@ int main(int argc, char * argv[]){
             }
           }
 
-          io_str_newline(replyDisplayBuffer);
+          io_str(replyDisplayBuffer);
 
           if(debug_showRequestInfo){
             io_request_info(output.outPort, output.prompt_tokens, output.completion_tokens);
@@ -469,22 +483,22 @@ int main(int argc, char * argv[]){
           }
 
         } else if(output.error == COMPLETION_OUTPUT_ERROR_CHATGPT){
-          io_char('\n');
           io_server_error(output.content, output.contentLength);
         } else {
-          io_char('\n');
           io_app_error(output.content, output.contentLength);
         }
 
         if(debug_showRawReply){
-          io_str_newline(output.rawData);
+          io_str(output.rawData);
         }
 
         if(debug_showTimeStamp){
           io_timestamp();
         }
 
-        io_str_newline("\nMe:");
+        io_printf("\n");
+
+        io_scrollback_refresh();
 
         memset(messageInBuffer, 0, SIZE_MESSAGE_IN_BUFFER);
         currentMessagePos = 0;
