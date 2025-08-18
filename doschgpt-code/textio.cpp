@@ -5,8 +5,10 @@
 #include <stdlib.h>
 #include <i86.h>
 #include "textio.h"
+#include "dbgserial.h"
 
-
+#define BIOS_INT  int86
+#define REGS_T    union REGS
 
 #define TIMESTAMP_FORMAT "%Y-%m-%d %H:%M:%S"
 
@@ -15,37 +17,6 @@
 char timestampStr[TIMESTAMP_SIZE];
 
 FILE *historyFile = NULL;
-
-#define BIOS_INT  int86
-#define REGS_T    union REGS
-
-static void dbg_serial_init_9600_8N1(void){
-    REGS_T r = {0};
-    r.h.ah = 0x00;       // Initialize
-    r.h.al = 0xE3;       // 9600 baud, 8N1 (BIOS bitfield: 1110 0011)
-    r.x.dx = 0;          // COM1
-    BIOS_INT(0x14, &r, &r);
-}
-static void dbg_serial_putc(char ch){
-    REGS_T r = {0};
-    r.h.ah = 0x01; r.h.al = (unsigned char)ch; r.x.dx = 0; BIOS_INT(0x14,&r,&r);
-}
-
-static void dbg_serial_printf(const char* fmt, ...){
-    va_list ap;
-    va_start(ap, fmt);
-    char temp[160];
-
-    vsnprintf(temp, sizeof(temp), fmt, ap);
-
-    char * temp_ptr = temp;
-
-    while(*temp_ptr) dbg_serial_putc(*temp_ptr++);
-    dbg_serial_putc('\r'); dbg_serial_putc('\n');
-
-    va_end(ap);
-}
-
 
 
 
@@ -338,14 +309,18 @@ static void sb_push_line(const char* s){
     memset(sb_lines[sb_head], 0, sb_max_line_len);
     memcpy(sb_lines[sb_head], s, len);
 
+    dbgserial_printf("%s", sb_lines[sb_head]);
+
 
     sb_head = (sb_head + 1) % sb_capacity;
 
     sb_view_delta = 0;
     sb_count++;
 
-    dbg_serial_printf("sb_count %d", sb_count);
-    dbg_serial_printf("sb head %d",  sb_head);
+
+
+    dbgserial_printf("new sb_count %d", sb_count);
+    dbgserial_printf("new sb head %d",  sb_head);
 
     //TODO: Make extra long lines into second line
 
@@ -411,7 +386,7 @@ void io_scrollback_scroll(int delta){
 
     // nothing to scroll if we don't fill at least one screen
     if (kept <= sb_rows) {
-        dbg_serial_printf("scroll: kept=%ld <= rows=%d; no-op", kept, sb_rows);
+        dbgserial_printf("scroll: kept=%ld <= rows=%d; no-op", kept, sb_rows);
         return;
     }
 
@@ -427,7 +402,7 @@ void io_scrollback_scroll(int delta){
 
     if (new_delta < min_delta) new_delta = min_delta;
 
-    dbg_serial_printf("scroll: kept=%ld rows=%d old=%d delta=%d -> new=%ld (min=%ld)\r\n",
+    dbgserial_printf("scroll: kept=%ld rows=%d old=%d delta=%d -> new=%ld (min=%ld)\r\n",
                       kept, sb_rows, sb_view_delta, delta, new_delta, min_delta);
 
     sb_view_delta = (int)new_delta;

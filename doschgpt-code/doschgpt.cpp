@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <bios.h>
 #include <string.h>
+#include <conio.h>
 
 #include "network.h"
 #include "utf2cp.h"
 #include "textio.h"
 #include "sound.h"
-#include "conio.h"
+#include "dbgserial.h"
+
+//#define SERIAL_DEBUG_PORT 1
 
 #define VERSION "0.21a"
 
@@ -182,6 +185,10 @@ void escapeThisString(char * source, int sourceSize, char * dest, int destMaxSiz
 }
 
 int main(int argc, char * argv[]){
+
+  #ifdef SERIAL_DEBUG_PORT
+    dbgserial_init_9600_8N1(SERIAL_DEBUG_PORT);
+  #endif
 
   io_clear_screen();
   io_scrollback_init(UI_HIST_LINES_MAX, UI_HIST_LINE_LENGTH_MAX);
