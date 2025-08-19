@@ -372,10 +372,10 @@ int main(int argc, char * argv[]){
         int scan = getch();
 
         switch (scan) {
-            case 0x48: io_scrollback_scroll(-1); continue; // Up
-            case 0x50: io_scrollback_scroll(1); continue; // Down
-            case 0x49: io_scrollback_scroll(-10); continue; // PgUp (page up = older)
-            case 0x51: io_scrollback_scroll(10); continue; // PgDn (towards bottom)
+            case 0x48: io_scrollback_scroll(-1); io_printf_do_not_store("%s", messageInBuffer); continue; // Up
+            case 0x50: io_scrollback_scroll(1);  io_printf_do_not_store("%s", messageInBuffer); continue; // Down
+            case 0x49: io_scrollback_scroll(-10);  io_printf_do_not_store("%s", messageInBuffer); continue; // PgUp (page up = older)
+            case 0x51: io_scrollback_scroll(10);  io_printf_do_not_store("%s", messageInBuffer); continue; // PgDn (towards bottom)
         }
 
       }
@@ -514,7 +514,7 @@ int main(int argc, char * argv[]){
       } else if((character >= ' ') && (character <= '~')){
 
         if(currentMessagePos >= SIZE_MESSAGE_IN_BUFFER){
-          io_printf_do_not_store("Reach buffer max\n");
+          //io_printf_do_not_store("Reach buffer max\n");
           continue;
         }
 
