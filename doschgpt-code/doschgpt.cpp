@@ -2,13 +2,17 @@
 #include <stdlib.h>
 #include <bios.h>
 #include <string.h>
+#include <conio.h>
 
 #include "network.h"
 #include "utf2cp.h"
 #include "textio.h"
 #include "sound.h"
+#include "dbgserial.h"
 
-#define VERSION "0.20"
+//#define SERIAL_DEBUG_PORT 1
+
+#define VERSION "0.21"
 
 #define DOS_CHATGPT_WELCOME_MSG "Welcome to DOS ChatGPT client"
 #define DOS_HUGGING_FACE_WELCOME_MSG "Welcome to DOS Hugging Face client"
@@ -29,6 +33,11 @@
 #define CONFIG_PATH_SIZE 256
 
 #define MESSAGE_SIZE 5000
+
+#define UI_HIST_LINES_MAX 200
+#define UI_HIST_LINE_LENGTH_MAX 81
+
+#define UI_ENTRY_ROWS 2
 
 enum APIS { CHATGPT, HUGGING_FACE, OLLAMA };
 
@@ -78,27 +87,29 @@ void endFunction(){
 
   io_close_history_file();
 
+  switch(api_selected){
+    case CHATGPT:
+      io_printf_do_not_store("Ended DOS ChatGPT client\n");
+      break;
+    case HUGGING_FACE:
+      io_printf_do_not_store("Ended DOS Hugging Face client\n");
+      break;
+    case OLLAMA:
+      io_printf_do_not_store("Ended DOS Ollama client\n");
+      break;
+  }
+
   if(sound_blaster_tts){
     sbtts_read_str(GOODBYE_SND, strlen(GOODBYE_SND), true);
     sbtts_end();
   }
 
-  switch(api_selected){
-    case CHATGPT:
-      printf("Ended DOS ChatGPT client\n");
-      break;
-    case HUGGING_FACE:
-      printf("Ended DOS Hugging Face client\n");
-      break;
-    case OLLAMA:
-      printf("Ended DOS OLLAMA client\n");
-      break;
-  }
+  io_scrollback_free();
 }
 
 // When network received a Break
 void networkBreakHandler( ) {
-  printf("End\n");
+  io_printf("End\n");
   inProgress = false;
   endFunction();
   exit(1);
@@ -176,8 +187,18 @@ void escapeThisString(char * source, int sourceSize, char * dest, int destMaxSiz
 }
 
 int main(int argc, char * argv[]){
-  printf("Started DOS ChatGPT/Hugging Face/Ollama client %s by Yeo Kheng Meng\n", VERSION);
-  printf("Compiled on %s %s\n\n", __DATE__, __TIME__);
+
+  #ifdef SERIAL_DEBUG_PORT
+    dbgserial_init_9600_8N1(SERIAL_DEBUG_PORT);
+  #endif
+
+  io_clear_screen();
+  io_scrollback_init(UI_HIST_LINES_MAX, UI_HIST_LINE_LENGTH_MAX, UI_ENTRY_ROWS);
+
+
+  io_printf("Started DOS ChatGPT/Hugging Face/Ollama client %s by Yeo Kheng Meng\n", VERSION);
+  io_printf("Compiled on %s %s\n", __DATE__, __TIME__);
+  io_printf("\n");
 
   // Process command line arguments -dri and -drr
   for(int i = 0; i < argc; i++){
@@ -194,7 +215,7 @@ int main(int argc, char * argv[]){
       convHistoryGiven = true;
 
       if((strlen(arg) - 2) > (CONV_HISTORY_PATH_SIZE - 1)){
-        printf("History File Path argument exceeded %d characters\n", CONV_HISTORY_PATH_SIZE);
+        io_printf("History File Path argument exceeded %d characters\n", CONV_HISTORY_PATH_SIZE);
         return -3;
       }
       //Copy after -f
@@ -203,7 +224,7 @@ int main(int argc, char * argv[]){
       configPathGiven = true;
 
       if((strlen(arg) - 2) > (CONFIG_PATH_SIZE - 1)){
-        printf("Config File Path argument exceeded %d characters\n", CONFIG_PATH_SIZE);
+        io_printf("Config File Path argument exceeded %d characters\n", CONFIG_PATH_SIZE);
         return -4;
       }
 
@@ -228,56 +249,56 @@ int main(int argc, char * argv[]){
 
   if(configFileOpenStatus){
 
-    printf("API/token key contains %d characters\n", strlen(config_apikey));
-    printf("Request temperature: %0.1f\n", config_req_temperature);
-    printf("Proxy hostname,port: %s:%d\n", config_proxy_hostname, config_proxy_port);
-    printf("Outgoing start port: %u, end port: %u\n", config_outgoing_start_port, config_outgoing_end_port);
-    printf("Socket connect timeout: %u ms, response timeout: %lu ms\n", config_socketConnectTimeout, config_socketResponseTimeout);
-    printf("Show request info -dri: %d, raw reply -drr: %d, timestamps -drt: %d\n", debug_showRequestInfo, debug_showRawReply, debug_showTimeStamp);
-    printf("Code page -cpXXX: %d\n", codePageInUse);
-    printf("Config Path -cX: %s\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
+    io_printf("API/token key contains %d characters\n", strlen(config_apikey));
+    io_printf("Request temperature: %0.1f\n", config_req_temperature);
+    io_printf("Proxy hostname,port: %s:%d\n", config_proxy_hostname, config_proxy_port);
+    io_printf("Outgoing start port: %u, end port: %u\n", config_outgoing_start_port, config_outgoing_end_port);
+    io_printf("Socket connect timeout: %u ms, response timeout: %lu ms\n", config_socketConnectTimeout, config_socketResponseTimeout);
+    io_printf("Show request info -dri: %d, raw reply -drr: %d, timestamps -drt: %d\n", debug_showRequestInfo, debug_showRawReply, debug_showTimeStamp);
+    io_printf("Code page -cpXXX: %d\n", codePageInUse);
+    io_printf("Config Path -cX: %s\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
 
     if(convHistoryGiven){
-      printf("Conversation history path -fX: %s\n", convHistoryPath);
+      io_printf("Conversation history path -fX: %s\n", convHistoryPath);
     } else {
-      printf("Conversation history path -fX: Not specified\n");
+      io_printf("Conversation history path -fX: Not specified\n");
     }
 
     if(sound_blaster_tts == false){
-      printf("Sound Blaster TTS -sbtts: %d\n", sound_blaster_tts);
+      io_printf("Sound Blaster TTS -sbtts: %d\n", sound_blaster_tts);
     }
         
 
   } else {
-    printf("Cannot open %s config file containing:\nAPI/Token key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
+    io_printf("Cannot open %s config file containing:\nAPI/Token key\nModel\nRequest Temperature\nProxy hostname\nProxy port\nOutgoing start port\nOutgoing end port\nSocket connect timeout (ms)\nSocket response timeout (ms)\n", configPathGiven ? configPath : CONFIG_FILENAME_DEFAULT);
     return -2;
   }
 
   bool status = network_init(config_outgoing_start_port, config_outgoing_end_port, networkBreakHandler, config_socketConnectTimeout, config_socketResponseTimeout);
 
   if (status) {
-    //printf("Network ok\n");
+    //io_printf("Network ok\n");
   } else {
-    printf("Cannot init network\n");
+    io_printf("Cannot init network\n");
     return -1;
   }
 
   if(convHistoryGiven && !io_open_history_file(convHistoryPath)){
-    printf("Cannot open history file to append\n");
+    io_printf("Cannot open history file to append\n");
     endFunction();
     return -2;
   }
 
   messageToSendToNet = (char *) calloc (SIZE_MSG_TO_SEND, sizeof(char));
   if(messageToSendToNet == NULL){
-    printf("Cannot allocate memory for messageToSendToNet\n");
+    io_printf("Cannot allocate memory for messageToSendToNet\n");
     network_stop();
     return -1;
   }
 
   messageInBuffer = (char *) calloc (SIZE_MESSAGE_IN_BUFFER, sizeof(char));
   if(messageInBuffer == NULL){
-    printf("Cannot allocate memory for messageInBuffer\n");
+    io_printf("Cannot allocate memory for messageInBuffer\n");
     free(messageToSendToNet);
     network_stop();
     return -1;
@@ -286,7 +307,7 @@ int main(int argc, char * argv[]){
   replyDisplayBuffer = (char *) calloc (REPLY_DISPLAY_SIZE, sizeof(char));
 
   if(replyDisplayBuffer == NULL){
-    printf("Cannot allocate memory for message Display\n");
+    io_printf("Cannot allocate memory for message Display\n");
     free(messageToSendToNet);
     free(messageInBuffer);
     network_stop();
@@ -297,12 +318,32 @@ int main(int argc, char * argv[]){
     bool sbtts_init_status = sbtts_init();
 
     if(sbtts_init_status == false){
-      printf("Error: First Byte Text-to-Speech Engine is not installed.\n");
+      io_printf("Error: First Byte Text-to-Speech Engine is not installed.\n");
       
       endFunction();
       return -3;
     }
   }
+
+  switch(api_selected){
+    case CHATGPT:
+      io_printf("\n");
+      io_printf("%s (%s).\n", DOS_CHATGPT_WELCOME_MSG, config_model);
+      break;
+    case HUGGING_FACE:
+      io_printf("\n");
+      io_printf("%s (%s).\n", DOS_HUGGING_FACE_WELCOME_MSG, config_model);
+      break;
+    case OLLAMA:
+      io_printf("\n");
+      io_printf("%s (%s).\n", DOS_OLLAMA_WELCOME_MSG, config_model);
+      break;
+  }
+
+  io_printf("Press ESC to quit, (Page) Up/Down to scroll.\n");
+  io_printf("\n");
+
+  io_scrollback_refresh();
 
   if(sound_blaster_tts){
 
@@ -319,28 +360,25 @@ int main(int argc, char * argv[]){
     }
   }
 
-  switch(api_selected){
-    case CHATGPT:
-      printf("\n%s (%s). Press ESC to quit.\n", DOS_CHATGPT_WELCOME_MSG, config_model);
-      break;
-    case HUGGING_FACE:
-      printf("\n%s (%s).\nPress ESC to quit.\n", DOS_HUGGING_FACE_WELCOME_MSG, config_model);
-      break;
-    case OLLAMA:
-      printf("\n%s (%s). Press ESC to quit.\n", DOS_OLLAMA_WELCOME_MSG, config_model);
-      break;
-  }
-
-
-  io_str_newline("Me:");
-
   int currentMessagePos = 0;
 
   while(inProgress){
 
     // Detect if key is pressed
-    if ( _bios_keybrd(_KEYBRD_READY) ) {
-      char character = _bios_keybrd(_KEYBRD_READ);
+    if (kbhit()) {
+      int character = getch();
+
+      if (character == 0 || character == 0xE0){
+        int scan = getch();
+
+        switch (scan) {
+            case 0x48: io_scrollback_scroll(-1); io_printf_do_not_store("%s", messageInBuffer); continue; // Up
+            case 0x50: io_scrollback_scroll(1);  io_printf_do_not_store("%s", messageInBuffer); continue; // Down
+            case 0x49: io_scrollback_scroll(-10);  io_printf_do_not_store("%s", messageInBuffer); continue; // PgUp (page up = older)
+            case 0x51: io_scrollback_scroll(10);  io_printf_do_not_store("%s", messageInBuffer); continue; // PgDn (towards bottom)
+        }
+
+      }
 
       // Detect ESC key for quit
       if(character == 27){
@@ -356,12 +394,21 @@ int main(int argc, char * argv[]){
           continue;
         }
 
-        io_write_str_no_print(messageInBuffer, currentMessagePos);
+        io_printf("Me:\n");
 
-        io_char('\n');
+        //Mark the message end
+        //messageInBuffer[currentMessagePos] = '\0';
+        io_printf("%s\n", messageInBuffer);
         if(debug_showTimeStamp){
           io_timestamp();
         }
+
+        // Gap to next interaction
+        io_printf("\n");
+
+        io_scrollback_refresh();
+        io_printf_do_not_store("Processing...\n");
+
 
         escapeThisString(messageInBuffer, currentMessagePos, messageToSendToNet, SIZE_MSG_TO_SEND);
 
@@ -380,19 +427,21 @@ int main(int argc, char * argv[]){
             break;
         }
 
+
         if(output.error == COMPLETION_OUTPUT_ERROR_OK){
 
           switch(api_selected){
             case CHATGPT:
-              io_str_newline("\nChatGPT:");
+              io_printf("ChatGPT:\n");
               break;
             case HUGGING_FACE:
-              io_str_newline("\nHugging Face:");
+              io_printf("Hugging Face:\n");
               break;
             case OLLAMA:
-              io_str_newline("\nOllama:");
+              io_printf("Ollama:\n");
               break;
           }
+
 
           memset(replyDisplayBuffer, 0, REPLY_DISPLAY_SIZE);
           replyDisplayPos = 0;
@@ -429,7 +478,8 @@ int main(int argc, char * argv[]){
             }
           }
 
-          io_str_newline(replyDisplayBuffer);
+          io_str(replyDisplayBuffer);
+
 
           if(debug_showRequestInfo){
             io_request_info(output.outPort, output.prompt_tokens, output.completion_tokens);
@@ -440,47 +490,47 @@ int main(int argc, char * argv[]){
           }
 
         } else if(output.error == COMPLETION_OUTPUT_ERROR_CHATGPT){
-          io_char('\n');
           io_server_error(output.content, output.contentLength);
         } else {
-          io_char('\n');
           io_app_error(output.content, output.contentLength);
         }
 
         if(debug_showRawReply){
-          io_str_newline(output.rawData);
+          io_str(output.rawData);
         }
 
         if(debug_showTimeStamp){
           io_timestamp();
         }
 
-        io_str_newline("\nMe:");
+        // Gap to next interaction
+        io_printf("\n");
+        //io_printf("\n");
+
+        io_scrollback_refresh();
 
         memset(messageInBuffer, 0, SIZE_MESSAGE_IN_BUFFER);
         currentMessagePos = 0;
       } else if((character >= ' ') && (character <= '~')){
 
         if(currentMessagePos >= SIZE_MESSAGE_IN_BUFFER){
-          printf("Reach buffer max\n");
+          //io_printf_do_not_store("Reach buffer max\n");
           continue;
         }
 
         messageInBuffer[currentMessagePos] = character;
         currentMessagePos++;
-        printf("%c", character);
-        fflush(stdout);
+        io_printf_do_not_store("%c", character);
 
       //Backspace character
       } else if(character == 8){
 
         if(currentMessagePos > 0){
           // Remove previous character
-          printf("%s", "\b \b");
+          io_printf_do_not_store("%s", "\b \b");
           currentMessagePos--;
           messageInBuffer[currentMessagePos] = '\0';
 
-          fflush(stdout);
         }
 
 

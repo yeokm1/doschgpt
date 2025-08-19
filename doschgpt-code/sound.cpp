@@ -31,7 +31,7 @@ int sbtts_run_command(char * command, bool redirectStdout){
 }
 
 bool sbtts_init(){
-    sbtts_run_command("SBTALKER /dBLASTER", false);
+    sbtts_run_command("SBTALKER /dBLASTER", true);
 
     if(DetectSpeech()){
         ResetSpeech();
@@ -43,7 +43,7 @@ bool sbtts_init(){
  
 void sbtts_end(){
     ResetSpeech();
-    sbtts_run_command("REMOVE", false);
+    sbtts_run_command("REMOVE", true);
 }
 
 void sbtts_read_this_phrase(char * phrase, int length, bool redirectStdout){

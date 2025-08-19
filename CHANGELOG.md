@@ -1,4 +1,7 @@
 # Change Log
+* v0.21 (19 Aug 2025):
+* * (New feature) Able to scroll the last 200 lines of conversation history using (Page) Up/Down keys.
+* * Compiled with Open Watcom 2.0 Beta (2025-08-02 build)
 * v0.20 (16 July 2025):
 * * Compiled with Open Watcom 2.0 Beta (2025-07-01 build)
 * * (Bugfix) To continue sending the rest of a network request if only a part of it was sent initially
