@@ -34,7 +34,7 @@ int io_printf(const char *fmt, ...) {
 
     if(historyFile){
         fprintf(historyFile, temp);
-        dbgserial_printf("h%s", temp);
+        //dbgserial_printf("h%s", temp);
     }
 
     if(temp[length_of_string - 1] == '\n'){
@@ -333,7 +333,7 @@ void io_scrollback_refresh(){
             // truncate to sb_cols if needed
             int n = 0; while (sb_lines[idx][n] && n < sb_cols) n++;
             fwrite(sb_lines[idx], 1, n, stdout);
-            dbgserial_printf("v%s", sb_lines[idx]);
+            //dbgserial_printf("v%s", sb_lines[idx]);
             fputc('\n', stdout);
 
             idx++; if (idx == sb_capacity) idx = 0;

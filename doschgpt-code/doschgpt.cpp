@@ -10,7 +10,7 @@
 #include "sound.h"
 #include "dbgserial.h"
 
-#define SERIAL_DEBUG_PORT 1
+//#define SERIAL_DEBUG_PORT 1
 
 #define VERSION "0.21a"
 
