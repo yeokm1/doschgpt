@@ -16,7 +16,7 @@ void io_close_history_file();
 void io_clear_screen();
 
 
-void io_scrollback_init(int max_lines, int max_line_len);
+void io_scrollback_init(int max_lines, int max_line_len, int user_entry_rows);
 
 void io_scrollback_free();
 

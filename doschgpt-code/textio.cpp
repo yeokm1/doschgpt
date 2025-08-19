@@ -79,6 +79,13 @@ int getScreenColumns(){
     return numCols;
 }
 
+// From ChatGPT
+int getScreenRows(void) {
+    unsigned char far* bda_rowsm1 = (unsigned char far*)MK_FP(0x40, 0x84);
+    unsigned char v = *bda_rowsm1;          // 0 if unknown (e.g., MDA/CGA)
+    return v ? (v + 1) : 25;                // fall back to 25
+}
+
 void io_timestamp(){
     updateTimeStamp();
 
@@ -226,7 +233,7 @@ void io_clear_screen() {
     unsigned char page = out.h.bh;
 
     // Rows: assume 25 (safe for MDA/CGA). If EGA/VGA sets BDA rows-1 at 0x40:0x0084, use it.
-    unsigned char rows = 25;
+    unsigned char rows = getScreenRows();
 #ifndef __386__  // far pointers are only valid in real-mode small/medium models
     {
         volatile unsigned char far* bda_rowsm1 = (unsigned char far*)MK_FP(0x40, 0x84);
@@ -260,14 +267,16 @@ static int    sb_capacity     = 0;     // total lines in ring
 static int    sb_max_line_len = 0;     // max chars per stored line (soft cap)
 static int    sb_head         = 0;     // next write index
 static long   sb_view_delta   = 0;
-static int    sb_rows         = 25 - 2; // visible rows; keep simple
+static int    sb_rows         = 25 - 3; // visible rows; keep simple
 static int    sb_cols         = 80;    // cache columns for wrapping
-// static int    sb_follow       = 1;     // follow newest if 1
 static long   sb_count        = 0;     // total lines ever stored
 
-void io_scrollback_init(int max_lines, int max_line_len){
+void io_scrollback_init(int max_lines, int max_line_len, int user_entry_rows){
 
     sb_cols = getScreenColumns();
+
+    // Minus extra 1 for the "Me:" row
+    sb_rows = getScreenRows() - user_entry_rows - 1;
 
     sb_capacity     = max_lines;
     sb_max_line_len = max_line_len;

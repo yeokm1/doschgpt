@@ -37,6 +37,8 @@
 #define UI_HIST_LINES_MAX 35
 #define UI_HIST_LINE_LENGTH_MAX 81
 
+#define UI_ENTRY_ROWS 2
+
 enum APIS { CHATGPT, HUGGING_FACE, OLLAMA };
 
 char config_apikey[API_KEY_LENGTH_MAX];
@@ -191,7 +193,7 @@ int main(int argc, char * argv[]){
   #endif
 
   io_clear_screen();
-  io_scrollback_init(UI_HIST_LINES_MAX, UI_HIST_LINE_LENGTH_MAX);
+  io_scrollback_init(UI_HIST_LINES_MAX, UI_HIST_LINE_LENGTH_MAX, UI_ENTRY_ROWS);
 
 
   io_printf("Started DOS ChatGPT/Hugging Face/Ollama client %s by Yeo Kheng Meng\n", VERSION);
