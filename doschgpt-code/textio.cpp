@@ -32,6 +32,11 @@ int io_printf(const char *fmt, ...) {
 
     int length_of_string = strlen(temp);
 
+    if(historyFile){
+        fprintf(historyFile, temp);
+        dbgserial_printf("h%s", temp);
+    }
+
     if(temp[length_of_string - 1] == '\n'){
         //Remove trailing newline
         temp[length_of_string - 1] = '\0';
@@ -91,30 +96,17 @@ void io_timestamp(){
 
     #define TIMESTAMP_PRINT_FORMAT "[%s]\n"
     io_printf(TIMESTAMP_PRINT_FORMAT, timestampStr);
-
-    if(historyFile){
-        fprintf(historyFile, TIMESTAMP_PRINT_FORMAT, timestampStr);
-    }
     
 }
 
 void io_app_error(char * str, int length){
-
-    #define APP_ERROR_FORMAT "App Error:\n%.*s\n"
-    io_printf(APP_ERROR_FORMAT, length, str);
-
-    if(historyFile){
-        fprintf(historyFile, APP_ERROR_FORMAT, length, str);
-    }
+    io_printf("App Error:\n");
+    io_printf("%.*s\n", length, str);
 }
 
 void io_server_error(char * str, int length){
-    #define GPT_ERROR_FORMAT "Server Error:\n%.*s\n"
-    io_printf(GPT_ERROR_FORMAT, length, str);
-
-    if(historyFile){
-        fprintf(historyFile, GPT_ERROR_FORMAT, length, str);
-    }
+    io_printf("Server Error:\n");
+    io_printf("%.*s\n", length, str);
 }
 
 void io_str(char * str){
@@ -134,7 +126,7 @@ void io_str(char * str){
 
         // Find and print the last chunk
         if((charactersRemaining) <= columns){
-            io_printf("%.*s", charactersRemaining, str + startPos);
+            io_printf("%.*s\n", charactersRemaining, str + startPos);
             break;
         }
 
@@ -167,41 +159,16 @@ void io_str(char * str){
 
         startPos = endPosOfCurrentString + 1;
     }
-
-    //io_printf("\n");
-
-
-    //io_printf("%s\n", str);
-
-    //This part writes the non-wrapped portion to file.
-    if(historyFile){
-        fprintf(historyFile, "%s\n", str);
-    }
-}
-
-void io_write_str_no_print(char * str, int length){
-    if(historyFile){
-        fprintf(historyFile, "%.*s", length, str);
-    }
 }
 
 void io_char(char c){
     io_printf("%c", c);
-
-    if(historyFile){
-        fprintf(historyFile, "%c", c);
-    }
 }
 
 void io_request_info(unsigned int port, int promptTokens, int completionTokens){
 
     #define INFO_FORMAT "[Outgoing port %u, %d prompt tokens, %d completion tokens]\n"
-
     io_printf(INFO_FORMAT, port, promptTokens, completionTokens);
-
-    if(historyFile){
-        fprintf(historyFile, INFO_FORMAT, port, promptTokens, completionTokens);
-    }
 }
 
 bool io_open_history_file(char * filePath){
@@ -318,7 +285,7 @@ static void sb_push_line(const char* s){
     memset(sb_lines[sb_head], 0, sb_max_line_len);
     memcpy(sb_lines[sb_head], s, len);
 
-    dbgserial_printf("%s", sb_lines[sb_head]);
+    //dbgserial_printf("%s", sb_lines[sb_head]);
 
 
     sb_head = (sb_head + 1) % sb_capacity;
@@ -328,8 +295,8 @@ static void sb_push_line(const char* s){
 
 
 
-    dbgserial_printf("new sb_count %d", sb_count);
-    dbgserial_printf("new sb head %d",  sb_head);
+    //dbgserial_printf("new sb_count %d", sb_count);
+    //dbgserial_printf("new sb head %d",  sb_head);
 
     //TODO: Make extra long lines into second line
 
@@ -370,6 +337,7 @@ void io_scrollback_refresh(){
             // truncate to sb_cols if needed
             int n = 0; while (sb_lines[idx][n] && n < sb_cols) n++;
             fwrite(sb_lines[idx], 1, n, stdout);
+            dbgserial_printf("v%s", sb_lines[idx]);
             fputc('\n', stdout);
 
             idx++; if (idx == sb_capacity) idx = 0;
@@ -394,10 +362,10 @@ void io_scrollback_scroll(int delta){
     long kept = (sb_count < sb_capacity) ? sb_count : sb_capacity;
 
     // nothing to scroll if we don't fill at least one screen
-    if (kept <= sb_rows) {
-        dbgserial_printf("scroll: kept=%ld <= rows=%d; no-op", kept, sb_rows);
-        return;
-    }
+    // if (kept <= sb_rows) {
+    //     dbgserial_printf("scroll: kept=%ld <= rows=%d; no-op", kept, sb_rows);
+    //     return;
+    // }
 
     // desired new delta (relative to bottom)
     long new_delta = (long)sb_view_delta + (long)delta;
@@ -411,8 +379,8 @@ void io_scrollback_scroll(int delta){
 
     if (new_delta < min_delta) new_delta = min_delta;
 
-    dbgserial_printf("scroll: kept=%ld rows=%d old=%d delta=%d -> new=%ld (min=%ld)\r\n",
-                      kept, sb_rows, sb_view_delta, delta, new_delta, min_delta);
+    // dbgserial_printf("scroll: kept=%ld rows=%d old=%d delta=%d -> new=%ld (min=%ld)\r\n",
+    //                   kept, sb_rows, sb_view_delta, delta, new_delta, min_delta);
 
     sb_view_delta = (int)new_delta;
     io_scrollback_refresh();

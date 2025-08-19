@@ -10,7 +10,7 @@
 #include "sound.h"
 #include "dbgserial.h"
 
-//#define SERIAL_DEBUG_PORT 1
+#define SERIAL_DEBUG_PORT 1
 
 #define VERSION "0.21a"
 
@@ -398,18 +398,16 @@ int main(int argc, char * argv[]){
 
         //Mark the message end
         //messageInBuffer[currentMessagePos] = '\0';
-        io_printf(messageInBuffer);
+        io_printf("%s\n", messageInBuffer);
         if(debug_showTimeStamp){
           io_timestamp();
         }
 
+        // Gap to next interaction
         io_printf("\n");
 
         io_scrollback_refresh();
         io_printf_do_not_store("Processing...\n");
-
-
-        //io_char('\n');
 
 
         escapeThisString(messageInBuffer, currentMessagePos, messageToSendToNet, SIZE_MSG_TO_SEND);
@@ -429,19 +427,18 @@ int main(int argc, char * argv[]){
             break;
         }
 
-        //io_char('\n');
 
         if(output.error == COMPLETION_OUTPUT_ERROR_OK){
 
           switch(api_selected){
             case CHATGPT:
-              io_printf("ChatGPT:");
+              io_printf("ChatGPT:\n");
               break;
             case HUGGING_FACE:
-              io_printf("Hugging Face:");
+              io_printf("Hugging Face:\n");
               break;
             case OLLAMA:
-              io_printf("Ollama:");
+              io_printf("Ollama:\n");
               break;
           }
 
@@ -483,6 +480,7 @@ int main(int argc, char * argv[]){
 
           io_str(replyDisplayBuffer);
 
+
           if(debug_showRequestInfo){
             io_request_info(output.outPort, output.prompt_tokens, output.completion_tokens);
           }
@@ -505,7 +503,9 @@ int main(int argc, char * argv[]){
           io_timestamp();
         }
 
+        // Gap to next interaction
         io_printf("\n");
+        //io_printf("\n");
 
         io_scrollback_refresh();
 
