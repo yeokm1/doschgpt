@@ -18,8 +18,6 @@ char timestampStr[TIMESTAMP_SIZE];
 
 FILE *historyFile = NULL;
 
-
-
 static void sb_push_line(const char* s);
 
 
@@ -195,15 +193,7 @@ void io_clear_screen() {
     unsigned char cols = getScreenColumns();
     unsigned char page = out.h.bh;
 
-    // Rows: assume 25 (safe for MDA/CGA). If EGA/VGA sets BDA rows-1 at 0x40:0x0084, use it.
     unsigned char rows = getScreenRows();
-#ifndef __386__  // far pointers are only valid in real-mode small/medium models
-    {
-        volatile unsigned char far* bda_rowsm1 = (unsigned char far*)MK_FP(0x40, 0x84);
-        unsigned char v = *bda_rowsm1;
-        if (v) rows = (unsigned char)(v + 1);
-    }
-#endif
 
     // Clear entire window via AH=06h. Use a fixed attribute (0x07) to avoid AH=08h.
     in.h.ah = 0x06;   // scroll up / clear
@@ -229,7 +219,7 @@ static char **sb_lines        = NULL;  // ring of pointers to lines
 static int    sb_capacity     = 0;     // total lines in ring
 static int    sb_max_line_len = 0;     // max chars per stored line (soft cap)
 static int    sb_head         = 0;     // next write index
-static long   sb_view_delta   = 0;
+static long   sb_view_delta   = 0;     //Relative position of viewport
 static int    sb_rows         = 25 - 3; // visible rows; keep simple
 static int    sb_cols         = 80;    // cache columns for wrapping
 static long   sb_count        = 0;     // total lines ever stored
@@ -249,7 +239,6 @@ void io_scrollback_init(int max_lines, int max_line_len, int user_entry_rows){
     }
     sb_head     = 0;
     sb_view_delta = 0;
-    // sb_follow   = 1; // start following
 }
 
 void io_scrollback_free(){
@@ -260,15 +249,6 @@ void io_scrollback_free(){
     free(sb_lines);
     sb_lines = NULL;
     sb_capacity = 0;
-}
-
-
-
-// Optional: if you already have these, you can reuse them.
-static void set_cursor_rc(unsigned char row, unsigned char col){
-    REGS_T r = {0};
-    r.h.ah = 0x02; r.h.bh = 0; r.h.dh = row; r.h.dl = col;
-    BIOS_INT(0x10, &r, &r);
 }
 
 //ChatGPT assisted and commented.

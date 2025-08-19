@@ -12,7 +12,7 @@
 
 //#define SERIAL_DEBUG_PORT 1
 
-#define VERSION "0.21a"
+#define VERSION "0.21"
 
 #define DOS_CHATGPT_WELCOME_MSG "Welcome to DOS ChatGPT client"
 #define DOS_HUGGING_FACE_WELCOME_MSG "Welcome to DOS Hugging Face client"
@@ -87,11 +87,6 @@ void endFunction(){
 
   io_close_history_file();
 
-  if(sound_blaster_tts){
-    sbtts_read_str(GOODBYE_SND, strlen(GOODBYE_SND), true);
-    sbtts_end();
-  }
-
   switch(api_selected){
     case CHATGPT:
       io_printf_do_not_store("Ended DOS ChatGPT client\n");
@@ -100,8 +95,13 @@ void endFunction(){
       io_printf_do_not_store("Ended DOS Hugging Face client\n");
       break;
     case OLLAMA:
-      io_printf_do_not_store("Ended DOS OLLAMA client\n");
+      io_printf_do_not_store("Ended DOS Ollama client\n");
       break;
+  }
+
+  if(sound_blaster_tts){
+    sbtts_read_str(GOODBYE_SND, strlen(GOODBYE_SND), true);
+    sbtts_end();
   }
 
   io_scrollback_free();
@@ -325,21 +325,6 @@ int main(int argc, char * argv[]){
     }
   }
 
-  if(sound_blaster_tts){
-
-    switch(api_selected){
-      case CHATGPT:
-        sbtts_read_str(DOS_CHATGPT_WELCOME_SND, strlen(DOS_CHATGPT_WELCOME_SND), false);
-        break;
-      case HUGGING_FACE:
-        sbtts_read_str(DOS_HUGGING_FACE_WELCOME_SND, strlen(DOS_HUGGING_FACE_WELCOME_SND), false);
-        break;
-      case OLLAMA:
-        sbtts_read_str(DOS_OLLAMA_WELCOME_SND, strlen(DOS_OLLAMA_WELCOME_SND), false);
-        break;
-    }
-  }
-
   switch(api_selected){
     case CHATGPT:
       io_printf("\n");
@@ -359,6 +344,21 @@ int main(int argc, char * argv[]){
   io_printf("\n");
 
   io_scrollback_refresh();
+
+  if(sound_blaster_tts){
+
+    switch(api_selected){
+      case CHATGPT:
+        sbtts_read_str(DOS_CHATGPT_WELCOME_SND, strlen(DOS_CHATGPT_WELCOME_SND), false);
+        break;
+      case HUGGING_FACE:
+        sbtts_read_str(DOS_HUGGING_FACE_WELCOME_SND, strlen(DOS_HUGGING_FACE_WELCOME_SND), false);
+        break;
+      case OLLAMA:
+        sbtts_read_str(DOS_OLLAMA_WELCOME_SND, strlen(DOS_OLLAMA_WELCOME_SND), false);
+        break;
+    }
+  }
 
   int currentMessagePos = 0;
 
