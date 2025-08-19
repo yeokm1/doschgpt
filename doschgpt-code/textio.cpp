@@ -161,10 +161,6 @@ void io_str(char * str){
     }
 }
 
-void io_char(char c){
-    io_printf("%c", c);
-}
-
 void io_request_info(unsigned int port, int promptTokens, int completionTokens){
 
     #define INFO_FORMAT "[Outgoing port %u, %d prompt tokens, %d completion tokens]\n"
