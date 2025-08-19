@@ -1,4 +1,6 @@
 # Change Log
+* v0.22 (19 Aug 2025):
+* * (Bugfix) When the previous release v0.21 added the scroll history feature, the server reply was not shown during audio playback. This fix shows the reply before the audio plays.
 * v0.21 (19 Aug 2025):
 * * (New feature) Able to scroll the last 200 lines of conversation history using (Page) Up/Down keys.
 * * Compiled with Open Watcom 2.0 Beta (2025-08-02 build)

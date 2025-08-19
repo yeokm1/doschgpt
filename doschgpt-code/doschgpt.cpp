@@ -12,7 +12,7 @@
 
 //#define SERIAL_DEBUG_PORT 1
 
-#define VERSION "0.21"
+#define VERSION "0.22"
 
 #define DOS_CHATGPT_WELCOME_MSG "Welcome to DOS ChatGPT client"
 #define DOS_HUGGING_FACE_WELCOME_MSG "Welcome to DOS Hugging Face client"
@@ -480,12 +480,12 @@ int main(int argc, char * argv[]){
 
           io_str(replyDisplayBuffer);
 
-
           if(debug_showRequestInfo){
             io_request_info(output.outPort, output.prompt_tokens, output.completion_tokens);
           }
 
           if(sound_blaster_tts){
+            io_scrollback_refresh();
             sbtts_read_str(replyDisplayBuffer, replyDisplayPos, true);
           }
 
@@ -505,7 +505,6 @@ int main(int argc, char * argv[]){
 
         // Gap to next interaction
         io_printf("\n");
-        //io_printf("\n");
 
         io_scrollback_refresh();
 
