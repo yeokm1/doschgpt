@@ -271,31 +271,39 @@ static void set_cursor_rc(unsigned char row, unsigned char col){
     BIOS_INT(0x10, &r, &r);
 }
 
+//ChatGPT assisted and commented.
 static void sb_push_line(const char* s){
-    if(!sb_lines) return;
-    int len = strlen(s);
+    if (!sb_lines || !s) return;
 
-    // Clip long lines
-    if(len >= sb_max_line_len) len = sb_max_line_len - 1;
+    // Each stored line can hold at most wrap chars (+1 for '\0')
+    int wrap = sb_cols - 1;
 
-    memset(sb_lines[sb_head], 0, sb_max_line_len);
-    memcpy(sb_lines[sb_head], s, len);
+    int len = (int)strlen(s);
 
-    //dbgserial_printf("%s", sb_lines[sb_head]);
+    // Always emit at least one line, even if empty
+    if (len == 0) {
+        memset(sb_lines[sb_head], 0, sb_max_line_len);
+        sb_head = (sb_head + 1) % sb_capacity;
+        sb_view_delta = 0;            // keep view following newest
+        sb_count++;
+        return;
+    }
 
+    // Hard-wrap into fixed-width chunks
+    int i = 0;
+    while (i < len) {
+        int seg = len - i;
+        if (seg > wrap) seg = wrap;
 
-    sb_head = (sb_head + 1) % sb_capacity;
+        memset(sb_lines[sb_head], 0, sb_max_line_len);
+        memcpy(sb_lines[sb_head], s + i, seg);
 
-    sb_view_delta = 0;
-    sb_count++;
+        sb_head = (sb_head + 1) % sb_capacity;
+        sb_view_delta = 0;            // auto-follow; remove if you want to preserve scrolled-back view
+        sb_count++;
 
-
-
-    //dbgserial_printf("new sb_count %d", sb_count);
-    //dbgserial_printf("new sb head %d",  sb_head);
-
-    //TODO: Make extra long lines into second line
-
+        i += seg;
+    }
 }
 
 // Helper: positive modulo for ring indices
@@ -307,8 +315,7 @@ static inline int wrap_idx(int x, int m){
 void io_scrollback_refresh(){
     if (!sb_lines) return;
 
-    io_clear_screen();               // clear everything
-    // sb_cols = getScreenColumns(); // if you want to re-read width here
+    io_clear_screen();
 
     // How many lines are currently retained in the ring?
     long kept = (sb_count < sb_capacity) ? sb_count : sb_capacity;
@@ -356,12 +363,6 @@ void io_scrollback_scroll(int delta){
 
     // how many lines exist in the ring right now?
     long kept = (sb_count < sb_capacity) ? sb_count : sb_capacity;
-
-    // nothing to scroll if we don't fill at least one screen
-    // if (kept <= sb_rows) {
-    //     dbgserial_printf("scroll: kept=%ld <= rows=%d; no-op", kept, sb_rows);
-    //     return;
-    // }
 
     // desired new delta (relative to bottom)
     long new_delta = (long)sb_view_delta + (long)delta;
